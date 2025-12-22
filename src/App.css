@@ -1,38 +1,244 @@
-.App {
-  text-align: center;
+/* src/App.css */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9fa; }
+
+.App { overflow-x: hidden; }
+
+/* Hamburger when sidebar closed */
+.hamburger-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1400;
+  background: white;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* Sidebar */
+.sidebar-drawer .MuiDrawer-paper {
+  width: 280px;
+  background: white;
+  border-right: 1px solid #eee;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.sidebar-header {
+  padding: 20px;
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  border-bottom: 1px solid #eee;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: bold;
+  color: #0d47a1;
+}
+
+.close-sidebar { color: #666; }
+
+.menu-items {
+  padding: 10px 0;
+}
+
+.menu-item {
+  padding: 14px 24px;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.menu-item::before {
+  content: "";
+  margin-right: 16px;
+  font-size: 20px;
+}
+
+.menu-item.active {
+  background: #e3f2fd;
+  color: #1976d2;
+  font-weight: 600;
+}
+
+.menu-item:hover { background: #f5f5f5; }
+
+.menu-divider {
+  height: 1px;
+  background: #eee;
+  margin: 12px 24px;
+}
+
+.sidebar-footer {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid #eee;
+}
+
+.user-name { font-weight: 600; font-size: 14px; }
+.user-email { font-size: 12px; color: #666; }
+
+/* Main Layout */
+.main {
+  transition: margin-left 0.3s ease;
+  margin-left: 280px;
+}
+
+.main.sidebar-open { margin-left: 280px; }
+.main:not(.sidebar-open) { margin-left: 0; }
+
+/* 1️⃣ HERO VIDEO */
+.hero-video {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+}
+
+.hero-video iframe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Active menu highlight */
+.menu-item {
+  padding: 14px 24px;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #333;
+}
+
+.menu-item.active {
+  background: #e3f2fd !important;
+  color: #1976d2 !important;
+  font-weight: 600;
+}
+
+.page-content {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+  text-align: center;
+  font-size: 24px;
+}
+
+/* 2️⃣ CONTENT AFTER VIDEO */
+.content-after-video {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 32px 20px;
+}
+
+.civic-card {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  margin-bottom: 24px;
+}
+
+.civic-card h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.civic-card p {
+  color: #555;
+  line-height: 1.6;
+}
+
+.promoted-post {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-info strong { font-size: 15px; }
+
+.verified {
+  color: #1da1f2;
+  font-weight: bold;
+  margin: 0 6px;
+}
+
+.location {
+  background: #0d47a1;
   color: white;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  margin-left: 8px;
 }
 
-.App-link {
-  color: #61dafb;
+.time {
+  color: #888;
+  font-size: 13px;
+  margin-left: 8px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.promoted-badge {
+  background: #e1f5fe;
+  color: #0277bd;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.promoted-post h2 {
+  padding: 0 20px;
+  font-size: 20px;
+  margin: 10px 0 14px;
+  font-weight: 600;
+}
+
+.promoted-post p {
+  padding: 0 20px 16px;
+  color: #333;
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+.post-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Floating Action Button */
+.fab {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #1976d2;
+  color: white;
+  font-size: 36px;
+  border: none;
+  box-shadow: 0 4px 20px rgba(25,118,210,0.4);
+  cursor: pointer;
+  z-index: 1000;
 }

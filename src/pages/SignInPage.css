@@ -1,0 +1,119 @@
+/* src/pages/SignInPage.css */
+.signin-container {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #0a001f, #001040);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.signin-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  padding: 60px 50px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+
+.signin-title {
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin-bottom: 50px;
+  background: linear-gradient(90deg, #a0f1ff, #d8b0ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.signin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.input-group {
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  font-size: 1.4rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  background: linear-gradient(90deg, #bb86fc, #03a9f4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 16px 20px;
+  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: white;
+  outline: none;
+  transition: all 0.3s;
+}
+
+.input-group input:focus {
+  border-color: #bb86fc;
+  box-shadow: 0 0 20px rgba(187, 134, 252, 0.3);
+}
+
+.input-group input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.signin-btn {
+  margin-top: 20px;
+  padding: 16px;
+  font-size: 1.4rem;
+  font-weight: bold;
+  background: linear-gradient(90deg, #ff69b4, #ff8c00);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 0 30px rgba(255, 105, 180, 0.5);
+  transition: all 0.3s;
+}
+
+.signin-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 40px rgba(255, 105, 180, 0.7);
+}
+
+.signup-link {
+  margin-top: 30px;
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.signup-link a {
+  color: #bb86fc;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.signup-link a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .signin-card {
+    padding: 40px 30px;
+  }
+  .signin-title {
+    font-size: 2.8rem;
+  }
+}

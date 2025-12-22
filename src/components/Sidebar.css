@@ -1,0 +1,148 @@
+.sidebar-drawer {
+  width: 280px;
+}
+
+.sidebar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #1e1e2f, #2a2a4a);
+  color: white;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  background: linear-gradient(90deg, #ff8a00, #e52e71);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.menu-items {
+  flex-grow: 1;
+  padding: 16px 0;
+}
+
+.menu-item {
+  display: block;
+  padding: 12px 24px;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.menu-item.active {
+  background: rgba(98, 0, 234, 0.3);
+  color: #bb86fc;
+  border-left: 4px solid #bb86fc;
+}
+
+.menu-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 16px 24px;
+}
+
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-section {
+  text-align: center;
+  width: 100%;
+}
+
+.user-name {
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 6px;
+}
+
+.user-email {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 20px;
+}
+
+.logout-btn {
+  width: 80%;
+  padding: 10px;
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.logout-btn:hover {
+  background: #cc0000;
+}
+
+.login-link {
+  width: 100%;
+  text-decoration: none;
+}
+
+.login-btn {
+  width: 80%;
+  padding: 12px;
+  background: #6200ea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.login-btn:hover {
+  background: #3700b3;
+}
+
+.loading-text {
+  color: #aaa;
+  text-align: center;
+}
+
+/* ================= MOBILE SIDEBAR ================= */
+@media (max-width: 768px) {
+  .sidebar-drawer {
+    width: 100%;
+  }
+
+  .sidebar {
+    width: 85vw;
+    max-width: 320px;
+  }
+
+  .menu-item {
+    padding: 16px 24px;
+    font-size: 16px;
+  }
+
+  .logout-btn,
+  .login-btn {
+    width: 100%;
+  }
+}
