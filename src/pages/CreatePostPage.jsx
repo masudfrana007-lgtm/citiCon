@@ -1,9 +1,7 @@
 // src/pages/CreatePostPage.jsx
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import './CreatePostPage.css';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import AdministrativeMap from '../components/AdministrativeMap';
 
 const CreatePostPage = () => {
   const [title, setTitle] = useState('');
@@ -21,37 +19,16 @@ const CreatePostPage = () => {
   const [fbConnected, setFbConnected] = useState(false);
   const [fbPages, setFbPages] = useState([]);
   const [selectedFbPage, setSelectedFbPage] = useState('');
-
   const [igConnected, setIgConnected] = useState(false);
   const [igAccounts, setIgAccounts] = useState([]);
   const [selectedIg, setSelectedIg] = useState('');
-
   const [ytConnected, setYtConnected] = useState(false);
   const [ytChannels, setYtChannels] = useState([]);
   const [selectedYt, setSelectedYt] = useState('');
 
   const isVideo = file && file.type.startsWith('video/');
 
-  const mapRef = useRef();
-
-  // Fix leaflet icon issue
-  delete L.Icon.Default.prototype._getIconUrl;
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  });
-
-  const redPinIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-  });
-
-  // Bangladesh location data (dummy but realistic)
+  // Bangladesh location data (for dropdowns only)
   const locationData = {
     Dhaka: {
       districts: {
@@ -70,44 +47,7 @@ const CreatePostPage = () => {
     Sylhet: { districts: { Sylhet: { upazilas: { 'Sylhet Sadar': ['Tultikar'], 'Dakshin Surma': ['Moglabazar'] } } } }
   };
 
-  const coordinates = {
-    '': { lat: 23.6850, lon: 90.3563, zoom: 7 },
-    'Dhaka': { lat: 23.8103, lon: 90.4125, zoom: 8 },
-    'Dhaka_Dhaka': { lat: 23.8103, lon: 90.4125, zoom: 10 },
-    'Dhaka_Dhaka_Dhanmondi': { lat: 23.7461, lon: 90.3760, zoom: 13 },
-    'Dhaka_Dhaka_Dhanmondi_Ward 47': { lat: 23.7461, lon: 90.3760, zoom: 15 },
-    'Dhaka_Dhaka_Dhanmondi_Ward 48': { lat: 23.7461, lon: 90.3760, zoom: 15 },
-    'Dhaka_Dhaka_Gulshan': { lat: 23.7925, lon: 90.4155, zoom: 13 },
-    'Dhaka_Dhaka_Gulshan_Banani': { lat: 23.7938, lon: 90.4053, zoom: 15 },
-    'Dhaka_Dhaka_Gulshan_Gulshan-1': { lat: 23.7925, lon: 90.4155, zoom: 15 },
-    'Dhaka_Dhaka_Mirpur': { lat: 23.8093, lon: 90.3609, zoom: 13 },
-    'Dhaka_Dhaka_Mirpur_Mirpur-10': { lat: 23.8069, lon: 90.3681, zoom: 15 },
-    'Dhaka_Dhaka_Uttara': { lat: 23.8769, lon: 90.4026, zoom: 13 },
-    'Dhaka_Dhaka_Uttara_Sector-7': { lat: 23.8678, lon: 90.3969, zoom: 15 },
-    'Dhaka_Gazipur': { lat: 24.0023, lon: 90.4267, zoom: 10 },
-    'Chattogram': { lat: 22.3569, lon: 91.7832, zoom: 8 },
-    'Rajshahi': { lat: 24.3745, lon: 88.6042, zoom: 8 },
-    'Khulna': { lat: 22.8456, lon: 89.5403, zoom: 8 },
-    'Sylhet': { lat: 24.8949, lon: 91.8687, zoom: 8 },
-  };
-
-  const getLocationKey = () => {
-    let key = '';
-    if (division) key += division;
-    if (district) key += '_' + district;
-    if (upazila) key += '_' + upazila;
-    if (union) key += '_' + union;
-    return key;
-  };
-
-  useEffect(() => {
-    if (mapRef.current) {
-      const loc = coordinates[getLocationKey()] || coordinates[''];
-      mapRef.current.flyTo([loc.lat, loc.lon], loc.zoom, { duration: 1.5 });
-    }
-  }, [division, district, upazila, union]);
-
-  // Load platform connections
+  // Load platform connections on mount
   useEffect(() => {
     const loadConnections = async () => {
       // Facebook
@@ -146,7 +86,6 @@ const CreatePostPage = () => {
         }
       } catch (err) { console.error(err); }
     };
-
     loadConnections();
   }, []);
 
@@ -170,32 +109,24 @@ const CreatePostPage = () => {
   const handlePostNow = () => {
     if (!file) return alert("Please upload a media file.");
     if (platforms.length === 0) return alert("Select at least one platform.");
-
     if (platforms.includes("facebook") && !selectedFbPage) return alert("Please select a Facebook Page.");
     if (platforms.includes("instagram") && !selectedIg) return alert("Please select an Instagram account.");
     if (platforms.includes("youtube") && !selectedYt) return alert("Please select a YouTube channel.");
     if (platforms.includes("youtube") && !isVideo) return alert("YouTube only accepts video files.");
-
     setShowConfirm(true);
   };
 
   const confirmPost = async () => {
     setShowConfirm(false);
-
     const form = new FormData();
     form.append("file", file);
     form.append("caption", content);
     form.append("title", title);
 
-    // Post to Facebook
     if (platforms.includes("facebook")) {
       form.append("pageId", selectedFbPage);
       try {
-        const res = await fetch("/auth/facebook/media", {
-          method: "POST",
-          body: form,
-          credentials: "include",
-        });
+        const res = await fetch("/auth/facebook/media", { method: "POST", body: form, credentials: "include" });
         const data = await res.json();
         alert(data.success ? "Posted to Facebook!" : "Facebook failed: " + (data.error || ''));
       } catch (err) {
@@ -203,25 +134,18 @@ const CreatePostPage = () => {
       }
     }
 
-    // Post to YouTube
     if (platforms.includes("youtube")) {
       form.append("channelId", selectedYt);
       form.append("title", title || content.slice(0, 90));
       form.append("description", content);
       try {
-        const res = await fetch("/auth/youtube/upload", {
-          method: "POST",
-          body: form,
-          credentials: "include",
-        });
+        const res = await fetch("/auth/youtube/upload", { method: "POST", body: form, credentials: "include" });
         const data = await res.json();
         alert(data.success ? "Posted to YouTube!" : "YouTube failed");
       } catch (err) {
         alert("YouTube upload error");
       }
     }
-
-    // Add Instagram later when backend ready
   };
 
   return (
@@ -262,20 +186,12 @@ const CreatePostPage = () => {
           </div>
 
           <div className="map-container">
-            <MapContainer center={[23.6850, 90.3563]} zoom={7} style={{ height: '400px', width: '100%' }} ref={mapRef}>
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              />
-              {union && (
-                <Marker position={[coordinates[getLocationKey()].lat, coordinates[getLocationKey()].lon]} icon={redPinIcon}>
-                  <Popup>
-                    <strong>{union}</strong><br />
-                    {upazila}, {district}, {division}
-                  </Popup>
-                </Marker>
-              )}
-            </MapContainer>
+            <AdministrativeMap
+              division={division}
+              district={district}
+              upazila={upazila}
+              union={union}
+            />
           </div>
         </div>
 
@@ -317,7 +233,6 @@ const CreatePostPage = () => {
               />
               <span>Facebook {fbConnected ? '✓' : '(Connect in Settings)'}</span>
             </label>
-
             <label>
               <input
                 type="checkbox"
@@ -327,7 +242,6 @@ const CreatePostPage = () => {
               />
               <span>Instagram {igConnected ? '✓' : '(Connect in Settings)'}</span>
             </label>
-
             <label>
               <input
                 type="checkbox"
@@ -339,7 +253,6 @@ const CreatePostPage = () => {
             </label>
           </div>
 
-          {/* Facebook Page Dropdown */}
           {platforms.includes('facebook') && fbConnected && (
             <div className="mt-4">
               <label>Select Facebook Page</label>
@@ -352,7 +265,6 @@ const CreatePostPage = () => {
             </div>
           )}
 
-          {/* Instagram Account Dropdown */}
           {platforms.includes('instagram') && igConnected && (
             <div className="mt-4">
               <label>Select Instagram Account</label>
@@ -365,7 +277,6 @@ const CreatePostPage = () => {
             </div>
           )}
 
-          {/* YouTube Channel Dropdown */}
           {platforms.includes('youtube') && ytConnected && isVideo && (
             <div className="mt-4">
               <label>Select YouTube Channel</label>
