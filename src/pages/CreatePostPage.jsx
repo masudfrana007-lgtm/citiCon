@@ -179,50 +179,107 @@ const CreatePostPage = () => {
     setShowConfirm(true);
   };
 
-  const confirmPost = async () => {
-    setShowConfirm(false);
+const confirmPost = async () => {
+  setShowConfirm(false);
 
-    const form = new FormData();
-    form.append("file", file);
-    form.append("caption", content);
-    form.append("title", title);
+  /* =======================
+     FACEBOOK POST
+     ======================= */
+  if (platforms.includes("facebook")) {
+    if (!selectedFbPage) {
+      alert("Please select a Facebook Page.");
+      return;
+    }
 
-    // Post to Facebook
-    if (platforms.includes("facebook")) {
-      form.append("pageId", selectedFbPage);
-      try {
+    try {
+      // TEXT-ONLY POST
+      if (!file) {
+        const res = await fetch("/auth/facebook/post", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            pageId: selectedFbPage,
+            message: content || title || "",
+          }),
+        });
+
+        const data = await res.json();
+        if (data.error) {
+          alert("Facebook failed: " + data.error);
+          return;
+        }
+      }
+
+      // MEDIA POST
+      if (file) {
+        const fbForm = new FormData();
+        fbForm.append("file", file);          // REQUIRED by multer
+        fbForm.append("caption", content);    // backend reads this
+        fbForm.append("pageId", selectedFbPage);
+
         const res = await fetch("/auth/facebook/media", {
           method: "POST",
-          body: form,
+          body: fbForm,
           credentials: "include",
         });
+
         const data = await res.json();
-        alert(data.success ? "Posted to Facebook!" : "Facebook failed: " + (data.error || ''));
-      } catch (err) {
-        alert("Facebook upload error");
+
+        if (data.error || !data.id) {
+          alert(
+            "Facebook failed: " +
+              (data.error?.message || data.error || "Unknown error")
+          );
+          return;
+        }
       }
+
+      alert("Posted to Facebook successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Facebook upload error");
+      return;
+    }
+  }
+
+  /* =======================
+     YOUTUBE POST (UNCHANGED)
+     ======================= */
+  if (platforms.includes("youtube")) {
+    if (!isVideo) {
+      alert("YouTube only accepts video files.");
+      return;
     }
 
-    // Post to YouTube
-    if (platforms.includes("youtube")) {
-      form.append("channelId", selectedYt);
-      form.append("title", title || content.slice(0, 90));
-      form.append("description", content);
-      try {
-        const res = await fetch("/auth/youtube/upload", {
-          method: "POST",
-          body: form,
-          credentials: "include",
-        });
-        const data = await res.json();
-        alert(data.success ? "Posted to YouTube!" : "YouTube failed");
-      } catch (err) {
-        alert("YouTube upload error");
-      }
-    }
+    const ytForm = new FormData();
+    ytForm.append("file", file);
+    ytForm.append("title", title || content.slice(0, 90));
+    ytForm.append("description", content);
+    ytForm.append("channelId", selectedYt);
 
-    // Add Instagram later when backend ready
-  };
+    try {
+      const res = await fetch("/auth/youtube/upload", {
+        method: "POST",
+        body: ytForm,
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      if (data.error) {
+        alert("YouTube failed: " + data.error);
+        return;
+      }
+
+      alert("Posted to YouTube successfully!");
+    } catch (err) {
+      alert("YouTube upload error");
+      return;
+    }
+  }
+};
+
+
 
   return (
     <div className="create-post-container">
