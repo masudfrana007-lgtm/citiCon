@@ -136,10 +136,11 @@
   gap: 8px;
   align-items: flex-start;
   cursor: pointer;
+  color:white;
 }
 
 .legal-consent a {
-  color: #1976d2;
+  color: #1ae8a8;
   text-decoration: none;
 }
 
@@ -151,5 +152,12 @@
   margin-top: 16px;
   font-size: 12px;
   text-align: center;
-  color: #666;
+}
+
+.auth-footer a {
+  color: #bb86fc;
+}
+
+.auth-footer a:hover {
+  color: #1ae8a8;
 }
