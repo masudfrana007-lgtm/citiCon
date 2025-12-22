@@ -36,6 +36,8 @@ const CreatePostPage = () => {
 
   const [isPosting, setIsPosting] = useState(false);
   const [postSteps, setPostSteps] = useState([]);
+  const [postFinished, setPostFinished] = useState(false);
+  const [postSummary, setPostSummary] = useState([]);
 
   // Fix leaflet icon issue
   delete L.Icon.Default.prototype._getIconUrl;
@@ -182,6 +184,25 @@ const CreatePostPage = () => {
     setShowConfirm(true);
   };
 
+const resetForm = () => {
+  setTitle("");
+  setContent("");
+  setDivision("");
+  setDistrict("");
+  setUpazila("");
+  setUnion("");
+  setFile(null);
+  setPreview("");
+  setPlatforms([]);
+  setSelectedFbPage("");
+  setSelectedIg("");
+  setSelectedYt("");
+  setPostSteps([]);
+  setPostSummary([]);
+  setPostFinished(false);
+  setIsPosting(false);
+};
+
   const updateStep = (platform, name, status) => {
     setPostSteps(prev => {
       const filtered = prev.filter(p => p.platform !== platform);
@@ -241,10 +262,12 @@ const confirmPost = async () => {
       }
 
       addStep("facebook", fbName, "success");
+      setPostSummary(prev => [...prev, { platform: "Facebook", target: fbName }]);
     } catch (err) {
       console.error(err);
       addStep("facebook", fbName, "error");
-      setIsPosting(false);
+      // setIsPosting(false);
+      setPostFinished(true);
       return;
     }
   }
@@ -275,10 +298,12 @@ const confirmPost = async () => {
       if (data.error) throw new Error(data.error);
 
       addStep("youtube", ytName, "success");
+      setPostSummary(prev => [...prev, { platform: "YouTube", target: ytName }]);
     } catch (err) {
       console.error(err);
       addStep("youtube", ytName, "error");
-      setIsPosting(false);
+      // setIsPosting(false);
+      setPostFinished(true);
       return;
     }
   }
@@ -446,7 +471,7 @@ const confirmPost = async () => {
 <button
   className="submit-btn"
   onClick={handlePostNow}
-  disabled={isPosting || !file || platforms.length === 0}
+  disabled={isPosting || showConfirm || !file || platforms.length === 0}
 >
   Submit Post
 </button>
@@ -465,28 +490,51 @@ const confirmPost = async () => {
             </div>
           </div>
         )}
-        {isPosting && (
-          <div className="posting-overlay">
-            <div className="posting-box">
-              <h3>Publishing your post</h3>
 
-              {postSteps.map(step => (
-                <div key={step.platform} className="posting-row">
-                  <strong>{step.platform.toUpperCase()}</strong> – {step.name}
-                  <span>
-                    {step.status === "pending" && " ⏳"}
-                    {step.status === "success" && " ✅"}
-                    {step.status === "error" && " ❌"}
-                  </span>
-                </div>
-              ))}
+{isPosting && (
+  <div className="posting-overlay">
+    <div className="posting-box">
+      {!postFinished ? (
+        <>
+          <h3>Publishing your post</h3>
 
-              <p className="posting-note">
-                Please don’t close this page while posting…
-              </p>
+          {postSteps.map(step => (
+            <div key={step.platform + step.name} className="posting-row">
+              <strong>{step.platform.toUpperCase()}</strong> – {step.name}
+              <span>
+                {step.status === "pending" && " ⏳"}
+                {step.status === "success" && " ✅"}
+                {step.status === "error" && " ❌"}
+              </span>
             </div>
-          </div>
-        )}
+          ))}
+
+          <p className="posting-note">
+            Please don’t close this page while posting…
+          </p>
+        </>
+      ) : (
+        <>
+          <h3>Post Published Successfully 🎉</h3>
+
+          {postSummary.map((p, i) => (
+            <div key={i} className="posting-row">
+              <strong>{p.platform}</strong> – {p.target} ✅
+            </div>
+          ))}
+
+          <button
+            className="confirm-btn"
+            style={{ marginTop: "20px" }}
+            onClick={() => resetForm()}
+          >
+            Done
+          </button>
+        </>
+      )}
+    </div>
+  </div>
+)}
 
       </div>
     </div>
