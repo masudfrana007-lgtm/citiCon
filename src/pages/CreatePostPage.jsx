@@ -34,6 +34,9 @@ const CreatePostPage = () => {
 
   const mapRef = useRef();
 
+  const [isPosting, setIsPosting] = useState(false);
+  const [postSteps, setPostSteps] = useState([]);
+
   // Fix leaflet icon issue
   delete L.Icon.Default.prototype._getIconUrl;
   L.Icon.Default.mergeOptions({
@@ -179,20 +182,35 @@ const CreatePostPage = () => {
     setShowConfirm(true);
   };
 
+  const updateStep = (platform, name, status) => {
+    setPostSteps(prev => {
+      const filtered = prev.filter(p => p.platform !== platform);
+      return [...filtered, { platform, name, status }];
+    });
+  };
+
 const confirmPost = async () => {
   setShowConfirm(false);
+  setIsPosting(true);
+  setPostSteps([]);
+
+  const addStep = (platform, name, status) => {
+    setPostSteps(prev => [
+      ...prev.filter(s => !(s.platform === platform && s.name === name)),
+      { platform, name, status }
+    ]);
+  };
 
   /* =======================
-     FACEBOOK POST
-     ======================= */
+     FACEBOOK
+  ======================= */
   if (platforms.includes("facebook")) {
-    if (!selectedFbPage) {
-      alert("Please select a Facebook Page.");
-      return;
-    }
+    const fbPage = fbPages.find(p => p.page_id === selectedFbPage);
+    const fbName = fbPage?.page_name || "Facebook Page";
+
+    addStep("facebook", fbName, "pending");
 
     try {
-      // TEXT-ONLY POST
       if (!file) {
         const res = await fetch("/auth/facebook/post", {
           method: "POST",
@@ -203,19 +221,12 @@ const confirmPost = async () => {
             message: content || title || "",
           }),
         });
-
         const data = await res.json();
-        if (data.error) {
-          alert("Facebook failed: " + data.error);
-          return;
-        }
-      }
-
-      // MEDIA POST
-      if (file) {
+        if (data.error) throw new Error(data.error);
+      } else {
         const fbForm = new FormData();
-        fbForm.append("file", file);          // REQUIRED by multer
-        fbForm.append("caption", content);    // backend reads this
+        fbForm.append("file", file);
+        fbForm.append("caption", content);
         fbForm.append("pageId", selectedFbPage);
 
         const res = await fetch("/auth/facebook/media", {
@@ -223,42 +234,37 @@ const confirmPost = async () => {
           body: fbForm,
           credentials: "include",
         });
-
         const data = await res.json();
-
         if (data.error || !data.id) {
-          alert(
-            "Facebook failed: " +
-              (data.error?.message || data.error || "Unknown error")
-          );
-          return;
+          throw new Error(data.error?.message || "Facebook upload failed");
         }
       }
 
-      alert("Posted to Facebook successfully!");
+      addStep("facebook", fbName, "success");
     } catch (err) {
       console.error(err);
-      alert("Facebook upload error");
+      addStep("facebook", fbName, "error");
+      setIsPosting(false);
       return;
     }
   }
 
   /* =======================
-     YOUTUBE POST (UNCHANGED)
-     ======================= */
+     YOUTUBE
+  ======================= */
   if (platforms.includes("youtube")) {
-    if (!isVideo) {
-      alert("YouTube only accepts video files.");
-      return;
-    }
+    const ytChannel = ytChannels.find(c => c.channel_id === selectedYt);
+    const ytName = ytChannel?.channel_name || "YouTube Channel";
 
-    const ytForm = new FormData();
-    ytForm.append("file", file);
-    ytForm.append("title", title || content.slice(0, 90));
-    ytForm.append("description", content);
-    ytForm.append("channelId", selectedYt);
+    addStep("youtube", ytName, "pending");
 
     try {
+      const ytForm = new FormData();
+      ytForm.append("file", file);
+      ytForm.append("title", title || content.slice(0, 90));
+      ytForm.append("description", content);
+      ytForm.append("channelId", selectedYt);
+
       const res = await fetch("/auth/youtube/upload", {
         method: "POST",
         body: ytForm,
@@ -266,17 +272,18 @@ const confirmPost = async () => {
       });
 
       const data = await res.json();
-      if (data.error) {
-        alert("YouTube failed: " + data.error);
-        return;
-      }
+      if (data.error) throw new Error(data.error);
 
-      alert("Posted to YouTube successfully!");
+      addStep("youtube", ytName, "success");
     } catch (err) {
-      alert("YouTube upload error");
+      console.error(err);
+      addStep("youtube", ytName, "error");
+      setIsPosting(false);
       return;
     }
   }
+
+  setIsPosting(false);
 };
 
 
@@ -436,9 +443,14 @@ const confirmPost = async () => {
           )}
         </div>
 
-        <button className="submit-btn" onClick={handlePostNow} disabled={!file || platforms.length === 0}>
-          Submit Post
-        </button>
+<button
+  className="submit-btn"
+  onClick={handlePostNow}
+  disabled={isPosting || !file || platforms.length === 0}
+>
+  Submit Post
+</button>
+
 
         {/* Confirmation Modal */}
         {showConfirm && (
@@ -453,6 +465,29 @@ const confirmPost = async () => {
             </div>
           </div>
         )}
+        {isPosting && (
+          <div className="posting-overlay">
+            <div className="posting-box">
+              <h3>Publishing your post</h3>
+
+              {postSteps.map(step => (
+                <div key={step.platform} className="posting-row">
+                  <strong>{step.platform.toUpperCase()}</strong> – {step.name}
+                  <span>
+                    {step.status === "pending" && " ⏳"}
+                    {step.status === "success" && " ✅"}
+                    {step.status === "error" && " ❌"}
+                  </span>
+                </div>
+              ))}
+
+              <p className="posting-note">
+                Please don’t close this page while posting…
+              </p>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
