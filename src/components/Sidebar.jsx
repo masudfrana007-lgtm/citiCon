@@ -107,14 +107,24 @@ const Sidebar = ({ open, onClose }) => {
             Settings
           </NavLink>
 
-          
+
           <NavLink to="/help" onClick={handleNavClick} className="menu-item">
             Help
           </NavLink>
           <NavLink to="/admin" onClick={handleNavClick} className="menu-item">
             Admin
           </NavLink>
+
+          <NavLink to="/terms" onClick={handleNavClick} className="menu-item">
+            Terms & Conditions
+          </NavLink>
+
+          <NavLink to="/privacy" onClick={handleNavClick} className="menu-item">
+            Privacy Policy
+          </NavLink>
+          
         </div>
+
 
         <div className="sidebar-footer">
           {loading ? (

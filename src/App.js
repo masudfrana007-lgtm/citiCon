@@ -19,6 +19,9 @@ import AdminPage from './pages/AdminPage';
 import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
 import SettingsPage from './pages/SettingsPage';
+import TermsPage from './pages/TermsPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import DataDeletionPage from "./pages/DataDeletionPage";
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -55,7 +58,11 @@ function App() {
                   <Route path="/transparency" element={<TransparencyPage />} />
                   <Route path="/help" element={<HelpPage />} />
                   <Route path="/admin" element={<AdminPage />} />
-		              
+
+                  <Route path="/terms" element={<TermsPage />} />
+                  <Route path="/privacy" element={<PrivacyPolicyPage />} />	
+  	              <Route path="/data-deletion" element={<DataDeletionPage />} />
+
                   <Route
                     path="/create-post"
                     element={

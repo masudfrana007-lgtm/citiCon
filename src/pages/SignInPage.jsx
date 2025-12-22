@@ -5,12 +5,19 @@ import { useAuth } from '../context/AuthContext';
 const SignInPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [acceptedLegal, setAcceptedLegal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const { refreshUser } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    if (!acceptedLegal) {
+      setMessage('You must agree to the Terms & Privacy Policy.');
+      return;
+    }
+
     setLoading(true);
     setMessage('');
 
@@ -26,10 +33,10 @@ const SignInPage = () => {
 
       if (data.success) {
         setMessage('Login successful! Redirecting...');
-        await refreshUser(); // This fetches full user (name + email)
+        await refreshUser();
         setTimeout(() => {
           window.location.href = '#/';
-        }, 1500);
+        }, 1200);
       } else {
         setMessage(data.error || 'Invalid email or password');
       }
@@ -44,6 +51,7 @@ const SignInPage = () => {
     <div className="signin-container">
       <div className="signin-card">
         <h1 className="signin-title">SIGN-IN</h1>
+
         <form onSubmit={handleLogin} className="signin-form">
           <div className="input-group">
             <label>EMAIL</label>
@@ -56,6 +64,7 @@ const SignInPage = () => {
               disabled={loading}
             />
           </div>
+
           <div className="input-group">
             <label>PASSWORD</label>
             <input
@@ -67,18 +76,56 @@ const SignInPage = () => {
               disabled={loading}
             />
           </div>
-          <button type="submit" className="signin-btn" disabled={loading}>
+
+          {/* ✅ Legal consent */}
+          <div className="legal-consent">
+            <label>
+              <input
+                type="checkbox"
+                checked={acceptedLegal}
+                onChange={(e) => setAcceptedLegal(e.target.checked)}
+                disabled={loading}
+              />
+              <span>
+                I agree to the{' '}
+                <a href="#/terms" target="_blank" rel="noopener noreferrer">
+                  Terms & Conditions
+                </a>{' '}
+                and{' '}
+                <a href="#/privacy" target="_blank" rel="noopener noreferrer">
+                  Privacy Policy
+                </a>
+              </span>
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            className="signin-btn"
+            disabled={loading || !acceptedLegal}
+          >
             {loading ? 'SIGNING IN...' : 'SIGN-IN'}
           </button>
         </form>
+
         {message && (
-          <p className={`message ${message.includes('successful') ? 'success' : 'error'}`}>
+          <p
+            className={`message ${
+              message.includes('successful') ? 'success' : 'error'
+            }`}
+          >
             {message}
           </p>
         )}
+
         <p className="signup-link">
-          Don't have an account? <a href="#/signup">Sign Up</a>
+          Don&apos;t have an account? <a href="#/signup">Sign Up</a>
         </p>
+
+        {/* Optional footer links */}
+        <div className="auth-footer">
+          <a href="#/terms">Terms</a> · <a href="#/privacy">Privacy</a>
+        </div>
       </div>
     </div>
   );

@@ -124,3 +124,32 @@
 .login-link a:hover {
   text-decoration: underline;
 }
+
+.legal-consent {
+  margin: 12px 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.legal-consent label {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.legal-consent a {
+  color: #1976d2;
+  text-decoration: none;
+}
+
+.legal-consent a:hover {
+  text-decoration: underline;
+}
+
+.auth-footer {
+  margin-top: 16px;
+  font-size: 12px;
+  text-align: center;
+  color: #666;
+}
