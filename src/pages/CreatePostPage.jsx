@@ -1,4 +1,3 @@
-// src/pages/CreatePostPage.jsx
 import { useState } from "react";
 import AdministrativeMap from "../components/AdministrativeMap";
 import "./CreatePostPage.css";
@@ -20,10 +19,12 @@ export default function CreatePostPage() {
 
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // mock connection flags (replace with real status)
-  const fbConnected = true;
-  const igConnected = true;
-  const ytConnected = true;
+  // replace with real backend status
+  const connected = {
+    facebook: true,
+    instagram: true,
+    youtube: true,
+  };
 
   const handleFile = e => {
     const f = e.target.files[0];
@@ -33,12 +34,18 @@ export default function CreatePostPage() {
     setPreview(URL.createObjectURL(f));
   };
 
+  const togglePlatform = p => {
+    setPlatforms(prev =>
+      prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]
+    );
+  };
+
   const canSubmit =
     title.trim() &&
     content.trim() &&
     platforms.length > 0 &&
-    (!platforms.includes("instagram") || file) &&
-    (!platforms.includes("youtube") || isVideo);
+    (!platforms.includes("instagram") || !connected.instagram || file) &&
+    (!platforms.includes("youtube") || !connected.youtube || isVideo);
 
   return (
     <div className="create-post-container">
@@ -117,7 +124,11 @@ export default function CreatePostPage() {
           <h3>Media (Optional)</h3>
 
           <div className="drop-zone">
-            <input type="file" accept="image/*,video/*" onChange={handleFile} />
+            <input
+              type="file"
+              accept="image/*,video/*"
+              onChange={handleFile}
+            />
             <p>Drag & drop or click to upload image/video</p>
           </div>
 
@@ -140,13 +151,9 @@ export default function CreatePostPage() {
             <label>
               <input
                 type="checkbox"
-                disabled={!fbConnected}
+                disabled={!connected.facebook}
                 checked={platforms.includes("facebook")}
-                onChange={e =>
-                  setPlatforms(e.target.checked
-                    ? [...platforms, "facebook"]
-                    : platforms.filter(p => p !== "facebook"))
-                }
+                onChange={() => togglePlatform("facebook")}
               />
               Facebook
             </label>
@@ -154,13 +161,9 @@ export default function CreatePostPage() {
             <label>
               <input
                 type="checkbox"
-                disabled={!igConnected || !file}
+                disabled={!connected.instagram || !file}
                 checked={platforms.includes("instagram")}
-                onChange={e =>
-                  setPlatforms(e.target.checked
-                    ? [...platforms, "instagram"]
-                    : platforms.filter(p => p !== "instagram"))
-                }
+                onChange={() => togglePlatform("instagram")}
               />
               Instagram <small>(Media required)</small>
             </label>
@@ -168,13 +171,9 @@ export default function CreatePostPage() {
             <label>
               <input
                 type="checkbox"
-                disabled={!ytConnected || !isVideo}
+                disabled={!connected.youtube || !isVideo}
                 checked={platforms.includes("youtube")}
-                onChange={e =>
-                  setPlatforms(e.target.checked
-                    ? [...platforms, "youtube"]
-                    : platforms.filter(p => p !== "youtube"))
-                }
+                onChange={() => togglePlatform("youtube")}
               />
               YouTube <small>(Video only)</small>
             </label>
@@ -192,14 +191,15 @@ export default function CreatePostPage() {
           </button>
         </div>
 
-        {/* Confirm */}
+        {/* Confirm Modal */}
         {showConfirm && (
           <div className="confirm-modal-overlay">
             <div className="confirm-modal">
               <h3>Confirm Post</h3>
+
               <p><b>Title:</b> {title}</p>
               <p><b>Platforms:</b> {platforms.join(", ")}</p>
-              <p><b>Location:</b> {union || upazila || district || division}</p>
+              <p><b>Location:</b> {union || upazila || district || division || "N/A"}</p>
 
               <div style={{ marginTop: 24, display: "flex", gap: 12 }}>
                 <button onClick={() => setShowConfirm(false)}>Cancel</button>

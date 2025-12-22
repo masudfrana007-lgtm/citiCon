@@ -1,13 +1,12 @@
-// src/components/AdministrativeMap.jsx
 import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 const boundaryStyle = {
   color: "#d32f2f",
-  weight: 2,
-  fillOpacity: 0.05,
+  weight: 2.5,
+  fillOpacity: 0.07,
 };
 
 export default function AdministrativeMap({
@@ -17,7 +16,12 @@ export default function AdministrativeMap({
   union,
 }) {
   const mapRef = useRef(null);
-  const [data, setData] = useState({});
+  const [geo, setGeo] = useState({
+    divisions: null,
+    districts: null,
+    upazilas: null,
+    unions: null,
+  });
 
   useEffect(() => {
     Promise.all([
@@ -25,64 +29,87 @@ export default function AdministrativeMap({
       fetch("/geo/districts.json").then(r => r.json()),
       fetch("/geo/upazilas.json").then(r => r.json()),
       fetch("/geo/unions.json").then(r => r.json()),
-    ]).then(([div, dist, upa, uni]) => {
-      setData({
-        division: div,
-        district: dist,
-        upazila: upa,
-        union: uni,
-      });
-    });
+    ]).then(([d1, d2, d3, d4]) =>
+      setGeo({
+        divisions: d1,
+        districts: d2,
+        upazilas: d3,
+        unions: d4,
+      })
+    );
   }, []);
 
-  const filterFeature = (feature, level) => {
-    if (level === "division") return feature.properties.NAME_1 === division;
-    if (level === "district") return feature.properties.NAME_2 === district;
-    if (level === "upazila") return feature.properties.NAME_3 === upazila;
-    if (level === "union") return feature.properties.NAME_4 === union;
-    return false;
-  };
+  useEffect(() => {
+    if (!mapRef.current) return;
 
-  const zoomToFeature = feature => {
-    const bounds = L.geoJSON(feature).getBounds();
-    mapRef.current.fitBounds(bounds, { padding: [40, 40] });
-  };
+    const level =
+      union ? "union" :
+      upazila ? "upazila" :
+      district ? "district" :
+      division ? "division" :
+      null;
 
-  const renderLayer = level => {
-    if (!data[level]) return null;
-    const value = { division, district, upazila, union }[level];
-    if (!value) return null;
+    if (!level) return;
 
-    return (
+    const source =
+      level === "division" ? geo.divisions :
+      level === "district" ? geo.districts :
+      level === "upazila" ? geo.upazilas :
+      geo.unions;
+
+    if (!source) return;
+
+    const feature = source.features.find(f => {
+      if (level === "division") return f.properties.NAME_1 === division;
+      if (level === "district") return f.properties.NAME_2 === district;
+      if (level === "upazila") return f.properties.NAME_3 === upazila;
+      if (level === "union") return f.properties.NAME_4 === union;
+      return false;
+    });
+
+    if (feature) {
+      const bounds = L.geoJSON(feature).getBounds();
+      mapRef.current.fitBounds(bounds, { padding: [40, 40] });
+    }
+  }, [division, district, upazila, union, geo]);
+
+  const renderLayer = (data, filterFn) =>
+    data && (
       <GeoJSON
-        data={data[level]}
+        data={data}
         style={boundaryStyle}
-        filter={f => filterFeature(f, level)}
-        onEachFeature={f => zoomToFeature(f)}
+        filter={filterFn}
       />
     );
-  };
 
   return (
     <div className="map-container">
       <MapContainer
         center={[23.685, 90.3563]}
         zoom={7}
-        style={{ height: "400px", width: "100%" }}
+        style={{ height: 420, width: "100%" }}
         whenCreated={map => (mapRef.current = map)}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        {renderLayer("division")}
-        {renderLayer("district")}
-        {renderLayer("upazila")}
-        {renderLayer("union")}
+
+        {division &&
+          renderLayer(geo.divisions, f => f.properties.NAME_1 === division)}
+
+        {district &&
+          renderLayer(geo.districts, f => f.properties.NAME_2 === district)}
+
+        {upazila &&
+          renderLayer(geo.upazilas, f => f.properties.NAME_3 === upazila)}
+
+        {union &&
+          renderLayer(geo.unions, f => f.properties.NAME_4 === union)}
       </MapContainer>
 
       {(division || district || upazila || union) && (
         <div className="map-overlay">
           {union || upazila || district || division}
           <br />
-          <small>Administrative boundary</small>
+          <small>Selected Administrative Area</small>
         </div>
       )}
     </div>
