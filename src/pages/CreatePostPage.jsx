@@ -196,139 +196,141 @@ const CreatePostPage = () => {
   /* =========================
      UI
   ========================= */
-return (
-  <div className="create-post-container">
-    <div className="create-post-card">
-      <h2>Create Post</h2>
+  return (
+    <div className="create-post-container">
+      <div className="create-post-card">
+        <h2>Create Post</h2>
 
-      {/* Title */}
-      <div className="form-group">
-        <label>Title *</label>
-        <input
-          type="text"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          placeholder="Enter post title"
-        />
-      </div>
-
-      {/* Content */}
-      <div className="form-group">
-        <label>Content *</label>
-        <textarea
-          rows={5}
-          value={content}
-          onChange={e => setContent(e.target.value)}
-          placeholder="Write your post content"
-        />
-      </div>
-
-      {/* Media */}
-      <div className="media-section">
-        <h3>Media (Optional)</h3>
-
-        <div className="drop-zone">
+        {/* Title */}
+        <div className="form-group">
+          <label>Title *</label>
           <input
-            type="file"
-            accept="image/*,video/*"
-            onChange={handleFileSelect}
+            type="text"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            placeholder="Enter post title"
           />
-          <p>Drag & drop or click to upload image/video</p>
         </div>
 
-        {preview && (
-          <div style={{ marginTop: 20 }}>
-            {isVideo ? (
-              <video src={preview} controls className="media-preview" />
-            ) : (
-              <img src={preview} alt="Preview" className="media-preview" />
-            )}
+        {/* Content */}
+        <div className="form-group">
+          <label>Content *</label>
+          <textarea
+            rows={5}
+            value={content}
+            onChange={e => setContent(e.target.value)}
+            placeholder="Write your post content"
+          />
+        </div>
+
+        {/* Media */}
+        <div className="media-section">
+          <h3>Media (Optional)</h3>
+
+          <div className="drop-zone">
+            <input
+              type="file"
+              accept="image/*,video/*"
+              onChange={handleFileSelect}
+            />
+            <p>Drag & drop or click to upload image/video</p>
+          </div>
+
+          {preview && (
+            <div style={{ marginTop: 20 }}>
+              {isVideo ? (
+                <video src={preview} controls className="media-preview" />
+              ) : (
+                <img src={preview} alt="Preview" className="media-preview" />
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Platforms */}
+        <div className="publish-section">
+          <h3>Publish To</h3>
+
+          <div className="platforms-grid">
+            <label>
+              <input
+                type="checkbox"
+                disabled={!fbConnected}
+                checked={platforms.includes('facebook')}
+                onChange={e =>
+                  setPlatforms(e.target.checked
+                    ? [...platforms, 'facebook']
+                    : platforms.filter(p => p !== 'facebook'))
+                }
+              />
+              Facebook
+            </label>
+
+            <label>
+              <input
+                type="checkbox"
+                disabled={!igConnected || !file}
+                checked={platforms.includes('instagram')}
+                onChange={e =>
+                  setPlatforms(e.target.checked
+                    ? [...platforms, 'instagram']
+                    : platforms.filter(p => p !== 'instagram'))
+                }
+              />
+              Instagram <small>(Media required)</small>
+            </label>
+
+            <label>
+              <input
+                type="checkbox"
+                disabled={!ytConnected || !isVideo}
+                checked={platforms.includes('youtube')}
+                onChange={e =>
+                  setPlatforms(e.target.checked
+                    ? [...platforms, 'youtube']
+                    : platforms.filter(p => p !== 'youtube'))
+                }
+              />
+              YouTube <small>(Video only)</small>
+            </label>
+          </div>
+        </div>
+
+        {/* Submit */}
+        <div style={{ marginTop: 40, textAlign: 'right' }}>
+          <button
+            className="submit-btn"
+            disabled={!canSubmit}
+            onClick={handleReview}
+          >
+            Review & Submit
+          </button>
+        </div>
+
+        {/* Confirm Modal */}
+        {showConfirm && (
+          <div className="confirm-modal-overlay">
+            <div className="confirm-modal">
+              <h3>Confirm Post</h3>
+
+              <p><strong>Title:</strong> {title}</p>
+              <p><strong>Content:</strong> {content.slice(0, 120)}...</p>
+              <p><strong>Platforms:</strong> {platforms.join(', ')}</p>
+              {file && <p><strong>Media:</strong> {isVideo ? 'Video' : 'Image'}</p>}
+
+              <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
+                <button onClick={() => setShowConfirm(false)}>Cancel</button>
+                <button className="submit-btn" onClick={confirmPost}>
+                  Post Now
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
-
-      {/* Platforms */}
-      <div className="publish-section">
-        <h3>Publish To</h3>
-
-        <div className="platforms-grid">
-          <label>
-            <input
-              type="checkbox"
-              disabled={!fbConnected}
-              checked={platforms.includes('facebook')}
-              onChange={e =>
-                setPlatforms(e.target.checked
-                  ? [...platforms, 'facebook']
-                  : platforms.filter(p => p !== 'facebook'))
-              }
-            />
-            Facebook
-          </label>
-
-          <label>
-            <input
-              type="checkbox"
-              disabled={!igConnected || !file}
-              checked={platforms.includes('instagram')}
-              onChange={e =>
-                setPlatforms(e.target.checked
-                  ? [...platforms, 'instagram']
-                  : platforms.filter(p => p !== 'instagram'))
-              }
-            />
-            Instagram <small>(Media required)</small>
-          </label>
-
-          <label>
-            <input
-              type="checkbox"
-              disabled={!ytConnected || !isVideo}
-              checked={platforms.includes('youtube')}
-              onChange={e =>
-                setPlatforms(e.target.checked
-                  ? [...platforms, 'youtube']
-                  : platforms.filter(p => p !== 'youtube'))
-              }
-            />
-            YouTube <small>(Video only)</small>
-          </label>
-        </div>
-      </div>
-
-      {/* Submit */}
-      <div style={{ marginTop: 40, textAlign: 'right' }}>
-        <button
-          className="submit-btn"
-          disabled={!canSubmit}
-          onClick={handleReview}
-        >
-          Review & Submit
-        </button>
-      </div>
-
-      {/* Confirm Modal */}
-      {showConfirm && (
-        <div className="confirm-modal-overlay">
-          <div className="confirm-modal">
-            <h3>Confirm Post</h3>
-
-            <p><strong>Title:</strong> {title}</p>
-            <p><strong>Content:</strong> {content.slice(0, 120)}...</p>
-            <p><strong>Platforms:</strong> {platforms.join(', ')}</p>
-            {file && <p><strong>Media:</strong> {isVideo ? 'Video' : 'Image'}</p>}
-
-            <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
-              <button onClick={() => setShowConfirm(false)}>Cancel</button>
-              <button className="submit-btn" onClick={confirmPost}>
-                Post Now
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
-  </div>
-);
+  );
+  
+};
 
 export default CreatePostPage;
