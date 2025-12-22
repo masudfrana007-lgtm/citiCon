@@ -1,4 +1,3 @@
-// src/pages/CreatePostPage.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import './CreatePostPage.css';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -6,18 +5,28 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
 const CreatePostPage = () => {
+  /* =========================
+     BASIC POST DATA
+  ========================= */
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState('');
+
+  /* =========================
+     LOCATION (OPTIONAL)
+  ========================= */
   const [division, setDivision] = useState('');
   const [district, setDistrict] = useState('');
   const [upazila, setUpazila] = useState('');
   const [union, setUnion] = useState('');
-  const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState('');
+
+  /* =========================
+     PLATFORM SELECTION
+  ========================= */
   const [platforms, setPlatforms] = useState([]);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Platform connections
   const [fbConnected, setFbConnected] = useState(false);
   const [fbPages, setFbPages] = useState([]);
   const [selectedFbPage, setSelectedFbPage] = useState('');
@@ -31,10 +40,11 @@ const CreatePostPage = () => {
   const [selectedYt, setSelectedYt] = useState('');
 
   const isVideo = file && file.type.startsWith('video/');
-
   const mapRef = useRef();
 
-  // Fix leaflet icon issue
+  /* =========================
+     LEAFLET ICON FIX
+  ========================= */
   delete L.Icon.Default.prototype._getIconUrl;
   L.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -43,139 +53,114 @@ const CreatePostPage = () => {
   });
 
   const redPinIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+    iconUrl:
+      'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+    shadowUrl:
+      'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
     iconSize: [25, 41],
     iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
   });
 
-  // Bangladesh location data (dummy but realistic)
-  const locationData = {
-    Dhaka: {
-      districts: {
-        Dhaka: { upazilas: { Dhanmondi: ['Ward 47', 'Ward 48'], Gulshan: ['Banani', 'Gulshan-1'], Mirpur: ['Mirpur-10'], Uttara: ['Sector-7'] } },
-        Gazipur: { upazilas: { Kaliakoir: ['Chandra'], Sreepur: ['Barmi'] } }
-      }
-    },
-    Chattogram: {
-      districts: {
-        Chattogram: { upazilas: { Kotwali: ['Anderkilla'], Panchlaish: ['Khulshi'], 'Double Mooring': ['Agrabad'] } },
-        "Cox’s Bazar": { upazilas: { 'Cox’s Bazar Sadar': ['Jhilongja'], Ukhiya: ['Raja Palong'] } }
-      }
-    },
-    Rajshahi: { districts: { Rajshahi: { upazilas: { Boalia: ['Boalia'], Matihar: ['Matihar'] } } } },
-    Khulna: { districts: { Khulna: { upazilas: { Sonadanga: ['Sonadanga'], 'Khulna Sadar': ['Atra Gilatala'] } } } },
-    Sylhet: { districts: { Sylhet: { upazilas: { 'Sylhet Sadar': ['Tultikar'], 'Dakshin Surma': ['Moglabazar'] } } } }
-  };
-
+  /* =========================
+     LOCATION DATA (SAMPLE)
+  ========================= */
   const coordinates = {
-    '': { lat: 23.6850, lon: 90.3563, zoom: 7 },
-    'Dhaka': { lat: 23.8103, lon: 90.4125, zoom: 8 },
-    'Dhaka_Dhaka': { lat: 23.8103, lon: 90.4125, zoom: 10 },
-    'Dhaka_Dhaka_Dhanmondi': { lat: 23.7461, lon: 90.3760, zoom: 13 },
-    'Dhaka_Dhaka_Dhanmondi_Ward 47': { lat: 23.7461, lon: 90.3760, zoom: 15 },
-    'Dhaka_Dhaka_Dhanmondi_Ward 48': { lat: 23.7461, lon: 90.3760, zoom: 15 },
-    'Dhaka_Dhaka_Gulshan': { lat: 23.7925, lon: 90.4155, zoom: 13 },
-    'Dhaka_Dhaka_Gulshan_Banani': { lat: 23.7938, lon: 90.4053, zoom: 15 },
-    'Dhaka_Dhaka_Gulshan_Gulshan-1': { lat: 23.7925, lon: 90.4155, zoom: 15 },
-    'Dhaka_Dhaka_Mirpur': { lat: 23.8093, lon: 90.3609, zoom: 13 },
-    'Dhaka_Dhaka_Mirpur_Mirpur-10': { lat: 23.8069, lon: 90.3681, zoom: 15 },
-    'Dhaka_Dhaka_Uttara': { lat: 23.8769, lon: 90.4026, zoom: 13 },
-    'Dhaka_Dhaka_Uttara_Sector-7': { lat: 23.8678, lon: 90.3969, zoom: 15 },
-    'Dhaka_Gazipur': { lat: 24.0023, lon: 90.4267, zoom: 10 },
-    'Chattogram': { lat: 22.3569, lon: 91.7832, zoom: 8 },
-    'Rajshahi': { lat: 24.3745, lon: 88.6042, zoom: 8 },
-    'Khulna': { lat: 22.8456, lon: 89.5403, zoom: 8 },
-    'Sylhet': { lat: 24.8949, lon: 91.8687, zoom: 8 },
+    '': { lat: 23.685, lon: 90.3563, zoom: 7 },
+    Dhaka: { lat: 23.8103, lon: 90.4125, zoom: 10 },
   };
 
   const getLocationKey = () => {
-    let key = '';
-    if (division) key += division;
-    if (district) key += '_' + district;
-    if (upazila) key += '_' + upazila;
-    if (union) key += '_' + union;
-    return key;
+    let k = '';
+    if (division) k += division;
+    if (district) k += '_' + district;
+    if (upazila) k += '_' + upazila;
+    if (union) k += '_' + union;
+    return k;
   };
 
   useEffect(() => {
-    if (mapRef.current) {
-      const loc = coordinates[getLocationKey()] || coordinates[''];
-      mapRef.current.flyTo([loc.lat, loc.lon], loc.zoom, { duration: 1.5 });
-    }
+    if (!mapRef.current) return;
+    const loc = coordinates[getLocationKey()] || coordinates[''];
+    mapRef.current.flyTo([loc.lat, loc.lon], loc.zoom, { duration: 1.2 });
   }, [division, district, upazila, union]);
 
-  // Load platform connections
+  /* =========================
+     LOAD PLATFORM CONNECTIONS
+  ========================= */
   useEffect(() => {
-    const loadConnections = async () => {
-      // Facebook
+    (async () => {
       try {
-        const res = await fetch('/auth/facebook/status', { credentials: 'include' });
-        const data = await res.json();
-        setFbConnected(data.connected);
-        if (data.connected) {
-          const pagesRes = await fetch('/auth/facebook/pages', { credentials: 'include' });
-          const pagesData = await pagesRes.json();
-          setFbPages(pagesData);
+        const fb = await fetch('/auth/facebook/status', { credentials: 'include' }).then(r => r.json());
+        setFbConnected(fb.connected);
+        if (fb.connected) {
+          const pages = await fetch('/auth/facebook/pages', { credentials: 'include' }).then(r => r.json());
+          setFbPages(pages);
         }
-      } catch (err) { console.error(err); }
+      } catch {}
 
-      // Instagram
       try {
-        const res = await fetch('/instagram/status', { credentials: 'include' });
-        const data = await res.json();
-        setIgConnected(data.connected);
-        if (data.connected) {
-          const accRes = await fetch('/instagram/accounts', { credentials: 'include' });
-          const accData = await accRes.json();
-          setIgAccounts(accData);
+        const ig = await fetch('/instagram/status', { credentials: 'include' }).then(r => r.json());
+        setIgConnected(ig.connected);
+        if (ig.connected) {
+          const acc = await fetch('/instagram/accounts', { credentials: 'include' }).then(r => r.json());
+          setIgAccounts(acc);
         }
-      } catch (err) { console.error(err); }
+      } catch {}
 
-      // YouTube
       try {
-        const res = await fetch('/auth/youtube/status', { credentials: 'include' });
-        const data = await res.json();
-        setYtConnected(data.connected);
-        if (data.connected) {
-          const chRes = await fetch('/auth/youtube/channels', { credentials: 'include' });
-          const chData = await chRes.json();
-          setYtChannels(chData);
+        const yt = await fetch('/auth/youtube/status', { credentials: 'include' }).then(r => r.json());
+        setYtConnected(yt.connected);
+        if (yt.connected) {
+          const ch = await fetch('/auth/youtube/channels', { credentials: 'include' }).then(r => r.json());
+          setYtChannels(ch);
         }
-      } catch (err) { console.error(err); }
-    };
-
-    loadConnections();
+      } catch {}
+    })();
   }, []);
 
-  const handleFileDrop = (e) => {
-    e.preventDefault();
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile && droppedFile.size <= 50 * 1024 * 1024) {
-      setFile(droppedFile);
-      setPreview(URL.createObjectURL(droppedFile));
-    }
+  /* =========================
+     FILE HANDLING
+  ========================= */
+  const handleFileSelect = e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    if (f.size > 50 * 1024 * 1024) return alert('File too large (50MB max)');
+    setFile(f);
+    setPreview(URL.createObjectURL(f));
   };
 
-  const handleFileSelect = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile && selectedFile.size <= 50 * 1024 * 1024) {
-      setFile(selectedFile);
-      setPreview(URL.createObjectURL(selectedFile));
+  /* =========================
+     VALIDATION LOGIC (CORE)
+  ========================= */
+  const validatePost = () => {
+    if (!title.trim()) return 'Title is required.';
+    if (!content.trim()) return 'Content is required.';
+    if (platforms.length === 0) return 'Select at least one platform.';
+
+    if (platforms.includes('facebook') && !selectedFbPage)
+      return 'Select a Facebook Page.';
+
+    if (platforms.includes('instagram')) {
+      if (!file) return 'Instagram requires an image or video.';
+      if (!selectedIg) return 'Select an Instagram account.';
     }
+
+    if (platforms.includes('youtube')) {
+      if (!file || !isVideo) return 'YouTube requires a video file.';
+      if (!selectedYt) return 'Select a YouTube channel.';
+    }
+
+    return null;
   };
 
-  const handlePostNow = () => {
-    if (!file) return alert("Please upload a media file.");
-    if (platforms.length === 0) return alert("Select at least one platform.");
+  const canSubmit = !validatePost();
 
-    if (platforms.includes("facebook") && !selectedFbPage) return alert("Please select a Facebook Page.");
-    if (platforms.includes("instagram") && !selectedIg) return alert("Please select an Instagram account.");
-    if (platforms.includes("youtube") && !selectedYt) return alert("Please select a YouTube channel.");
-    if (platforms.includes("youtube") && !isVideo) return alert("YouTube only accepts video files.");
-
+  /* =========================
+     SUBMIT FLOW
+  ========================= */
+  const handleReview = () => {
+    const err = validatePost();
+    if (err) return alert(err);
     setShowConfirm(true);
   };
 
@@ -183,216 +168,137 @@ const CreatePostPage = () => {
     setShowConfirm(false);
 
     const form = new FormData();
-    form.append("file", file);
-    form.append("caption", content);
-    form.append("title", title);
+    form.append('file', file);
+    form.append('title', title);
+    form.append('caption', content);
 
-    // Post to Facebook
-    if (platforms.includes("facebook")) {
-      form.append("pageId", selectedFbPage);
-      try {
-        const res = await fetch("/auth/facebook/media", {
-          method: "POST",
-          body: form,
-          credentials: "include",
-        });
-        const data = await res.json();
-        alert(data.success ? "Posted to Facebook!" : "Facebook failed: " + (data.error || ''));
-      } catch (err) {
-        alert("Facebook upload error");
-      }
+    if (platforms.includes('facebook')) {
+      form.append('pageId', selectedFbPage);
+      await fetch('/auth/facebook/media', {
+        method: 'POST',
+        body: form,
+        credentials: 'include',
+      });
     }
 
-    // Post to YouTube
-    if (platforms.includes("youtube")) {
-      form.append("channelId", selectedYt);
-      form.append("title", title || content.slice(0, 90));
-      form.append("description", content);
-      try {
-        const res = await fetch("/auth/youtube/upload", {
-          method: "POST",
-          body: form,
-          credentials: "include",
-        });
-        const data = await res.json();
-        alert(data.success ? "Posted to YouTube!" : "YouTube failed");
-      } catch (err) {
-        alert("YouTube upload error");
-      }
+    if (platforms.includes('youtube')) {
+      form.append('channelId', selectedYt);
+      await fetch('/auth/youtube/upload', {
+        method: 'POST',
+        body: form,
+        credentials: 'include',
+      });
     }
 
-    // Add Instagram later when backend ready
+    alert('Post submitted successfully.');
   };
 
+  /* =========================
+     UI
+  ========================= */
   return (
     <div className="create-post-container">
       <div className="create-post-card">
-        <h2>Create a New Post</h2>
+        <h2>Create Post</h2>
 
-        <div className="form-group">
-          <label>Title</label>
-          <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Enter a catchy title" />
-        </div>
+        <label>Title *</label>
+        <input value={title} onChange={e => setTitle(e.target.value)} />
 
-        <div className="form-group">
-          <label>Content / Caption</label>
-          <textarea rows="7" value={content} onChange={e => setContent(e.target.value)} placeholder="Write your post caption..." />
-        </div>
+        <label>Content *</label>
+        <textarea rows={6} value={content} onChange={e => setContent(e.target.value)} />
 
-        {/* Location Section */}
-        <div className="location-section">
-          <h3>Location</h3>
-          <div className="location-grid">
-            <select value={division} onChange={e => { setDivision(e.target.value); setDistrict(''); setUpazila(''); setUnion(''); }}>
-              <option>Select Division</option>
-              {Object.keys(locationData).map(d => <option key={d}>{d}</option>)}
-            </select>
-            <select value={district} onChange={e => { setDistrict(e.target.value); setUpazila(''); setUnion(''); }} disabled={!division}>
-              <option>Select District</option>
-              {division && Object.keys(locationData[division].districts).map(d => <option key={d}>{d}</option>)}
-            </select>
-            <select value={upazila} onChange={e => { setUpazila(e.target.value); setUnion(''); }} disabled={!district}>
-              <option>Select Upazila</option>
-              {district && Object.keys(locationData[division].districts[district].upazilas).map(u => <option key={u}>{u}</option>)}
-            </select>
-            <select value={union} onChange={e => setUnion(e.target.value)} disabled={!upazila}>
-              <option>Select Union/Ward</option>
-              {upazila && locationData[division].districts[district].upazilas[upazila].map(u => <option key={u}>{u}</option>)}
-            </select>
-          </div>
+        <h3>Media (Optional)</h3>
+        <input type="file" accept="image/*,video/*" onChange={handleFileSelect} />
+        {preview &&
+          (isVideo ? (
+            <video src={preview} controls />
+          ) : (
+            <img src={preview} alt="preview" />
+          ))}
 
-          <div className="map-container">
-            <MapContainer center={[23.6850, 90.3563]} zoom={7} style={{ height: '400px', width: '100%' }} ref={mapRef}>
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              />
-              {union && (
-                <Marker position={[coordinates[getLocationKey()].lat, coordinates[getLocationKey()].lon]} icon={redPinIcon}>
-                  <Popup>
-                    <strong>{union}</strong><br />
-                    {upazila}, {district}, {division}
-                  </Popup>
-                </Marker>
-              )}
-            </MapContainer>
-          </div>
-        </div>
+        <h3>Publish To</h3>
 
-        {/* Media Upload */}
-        <div className="media-section">
-          <h3>Media (Image/Video)</h3>
-          <div
-            className="drop-zone"
-            onDrop={handleFileDrop}
-            onDragOver={e => e.preventDefault()}
-            onClick={() => document.getElementById('file-input').click()}
-          >
-            {preview ? (
-              isVideo ? (
-                <video src={preview} controls className="media-preview" />
-              ) : (
-                <img src={preview} alt="Preview" className="media-preview" />
-              )
-            ) : (
-              <>
-                <p>Click to upload or drag and drop</p>
-                <p>PNG, JPG or MP4 (MAX. 50MB)</p>
-              </>
-            )}
-            <input id="file-input" type="file" accept="image/*,video/*" onChange={handleFileSelect} hidden />
-          </div>
-        </div>
+        <label>
+          <input
+            type="checkbox"
+            disabled={!fbConnected}
+            checked={platforms.includes('facebook')}
+            onChange={e =>
+              setPlatforms(e.target.checked
+                ? [...platforms, 'facebook']
+                : platforms.filter(p => p !== 'facebook'))
+            }
+          />
+          Facebook
+        </label>
 
-        {/* Platform Selection */}
-        <div className="publish-section">
-          <h3>Publish to</h3>
-          <div className="platforms-grid">
-            <label>
-              <input
-                type="checkbox"
-                checked={platforms.includes('facebook')}
-                onChange={e => setPlatforms(e.target.checked ? [...platforms, 'facebook'] : platforms.filter(p => p !== 'facebook'))}
-                disabled={!fbConnected}
-              />
-              <span>Facebook {fbConnected ? '✓' : '(Connect in Settings)'}</span>
-            </label>
+        <label>
+          <input
+            type="checkbox"
+            disabled={!igConnected || !file}
+            checked={platforms.includes('instagram')}
+            onChange={e =>
+              setPlatforms(e.target.checked
+                ? [...platforms, 'instagram']
+                : platforms.filter(p => p !== 'instagram'))
+            }
+          />
+          Instagram (Media required)
+        </label>
 
-            <label>
-              <input
-                type="checkbox"
-                checked={platforms.includes('instagram')}
-                onChange={e => setPlatforms(e.target.checked ? [...platforms, 'instagram'] : platforms.filter(p => p !== 'instagram'))}
-                disabled={!igConnected}
-              />
-              <span>Instagram {igConnected ? '✓' : '(Connect in Settings)'}</span>
-            </label>
+        <label>
+          <input
+            type="checkbox"
+            disabled={!ytConnected || !isVideo}
+            checked={platforms.includes('youtube')}
+            onChange={e =>
+              setPlatforms(e.target.checked
+                ? [...platforms, 'youtube']
+                : platforms.filter(p => p !== 'youtube'))
+            }
+          />
+          YouTube (Video only)
+        </label>
 
-            <label>
-              <input
-                type="checkbox"
-                checked={platforms.includes('youtube')}
-                onChange={e => setPlatforms(e.target.checked ? [...platforms, 'youtube'] : platforms.filter(p => p !== 'youtube'))}
-                disabled={!ytConnected || !isVideo}
-              />
-              <span>YouTube {ytConnected && isVideo ? '✓' : '(Connect + Video)'}</span>
-            </label>
-          </div>
+        {platforms.includes('facebook') && (
+          <select value={selectedFbPage} onChange={e => setSelectedFbPage(e.target.value)}>
+            <option value="">Select Facebook Page</option>
+            {fbPages.map(p => (
+              <option key={p.page_id} value={p.page_id}>{p.page_name}</option>
+            ))}
+          </select>
+        )}
 
-          {/* Facebook Page Dropdown */}
-          {platforms.includes('facebook') && fbConnected && (
-            <div className="mt-4">
-              <label>Select Facebook Page</label>
-              <select value={selectedFbPage} onChange={e => setSelectedFbPage(e.target.value)} className="platform-select">
-                <option value="">-- Choose Page --</option>
-                {fbPages.map(p => (
-                  <option key={p.page_id} value={p.page_id}>{p.page_name}</option>
-                ))}
-              </select>
-            </div>
-          )}
+        {platforms.includes('instagram') && (
+          <select value={selectedIg} onChange={e => setSelectedIg(e.target.value)}>
+            <option value="">Select Instagram</option>
+            {igAccounts.map(a => (
+              <option key={a.ig_id} value={a.ig_id}>{a.username}</option>
+            ))}
+          </select>
+        )}
 
-          {/* Instagram Account Dropdown */}
-          {platforms.includes('instagram') && igConnected && (
-            <div className="mt-4">
-              <label>Select Instagram Account</label>
-              <select value={selectedIg} onChange={e => setSelectedIg(e.target.value)} className="platform-select">
-                <option value="">-- Choose Account --</option>
-                {igAccounts.map(a => (
-                  <option key={a.ig_id} value={a.ig_id}>{a.username}</option>
-                ))}
-              </select>
-            </div>
-          )}
+        {platforms.includes('youtube') && (
+          <select value={selectedYt} onChange={e => setSelectedYt(e.target.value)}>
+            <option value="">Select YouTube Channel</option>
+            {ytChannels.map(c => (
+              <option key={c.channel_id} value={c.channel_id}>{c.channel_name}</option>
+            ))}
+          </select>
+        )}
 
-          {/* YouTube Channel Dropdown */}
-          {platforms.includes('youtube') && ytConnected && isVideo && (
-            <div className="mt-4">
-              <label>Select YouTube Channel</label>
-              <select value={selectedYt} onChange={e => setSelectedYt(e.target.value)} className="platform-select">
-                <option value="">-- Choose Channel --</option>
-                {ytChannels.map(c => (
-                  <option key={c.channel_id} value={c.channel_id}>{c.channel_name}</option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
-
-        <button className="submit-btn" onClick={handlePostNow} disabled={!file || platforms.length === 0}>
-          Submit Post
+        <button className="submit-btn" disabled={!canSubmit} onClick={handleReview}>
+          Review & Submit
         </button>
 
-        {/* Confirmation Modal */}
         {showConfirm && (
           <div className="confirm-modal-overlay">
             <div className="confirm-modal">
               <h3>Confirm Post</h3>
-              <p>Are you sure you want to publish this post to the selected platforms?</p>
-              <div className="modal-buttons">
-                <button onClick={() => setShowConfirm(false)}>Cancel</button>
-                <button onClick={confirmPost} className="confirm-btn">Yes, Post Now</button>
-              </div>
+              <p><strong>Title:</strong> {title}</p>
+              <p><strong>Platforms:</strong> {platforms.join(', ')}</p>
+              <button onClick={() => setShowConfirm(false)}>Cancel</button>
+              <button className="confirm-btn" onClick={confirmPost}>Post Now</button>
             </div>
           </div>
         )}

@@ -121,7 +121,7 @@ const PlatformCard = ({ platform }) => {
               )}
               <div>
                 <div className="account-name">{item[platform.nameField]}</div>
-                <div className="account-id">{item[platform.idField]}</div>
+                {/*<div className="account-id">{item[platform.idField]}</div>*/}
               </div>
             </div>
           ))}
