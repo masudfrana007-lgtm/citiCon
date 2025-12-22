@@ -210,17 +210,26 @@ const resetForm = () => {
     });
   };
 
+const addStep = (platform, name, status) => {
+  setPostSteps(prev => {
+    const idx = prev.findIndex(
+      s => s.platform === platform && s.name === name
+    );
+
+    if (idx === -1) {
+      return [...prev, { platform, name, status }];
+    }
+
+    const copy = [...prev];
+    copy[idx] = { ...copy[idx], status };
+    return copy;
+  });
+};
+
 const confirmPost = async () => {
   setShowConfirm(false);
   setIsPosting(true);
   setPostSteps([]);
-
-  const addStep = (platform, name, status) => {
-    setPostSteps(prev => [
-      ...prev.filter(s => !(s.platform === platform && s.name === name)),
-      { platform, name, status }
-    ]);
-  };
 
   /* =======================
      FACEBOOK
@@ -266,9 +275,7 @@ const confirmPost = async () => {
     } catch (err) {
       console.error(err);
       addStep("facebook", fbName, "error");
-      // setIsPosting(false);
       setPostFinished(true);
-      return;
     }
   }
 
@@ -302,13 +309,13 @@ const confirmPost = async () => {
     } catch (err) {
       console.error(err);
       addStep("youtube", ytName, "error");
-      // setIsPosting(false);
       setPostFinished(true);
-      return;
     }
   }
 
-  setIsPosting(false);
+//  setIsPosting(false);
+  setPostFinished(true);
+
 };
 
 
@@ -493,7 +500,7 @@ const confirmPost = async () => {
 
 {isPosting && (
   <div className="posting-overlay">
-    <div className="posting-box">
+    <div className={`posting-box ${postFinished ? "success" : ""}`}>
       {!postFinished ? (
         <>
           <h3>Publishing your post</h3>
