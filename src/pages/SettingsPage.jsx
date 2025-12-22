@@ -6,7 +6,7 @@ const PLATFORMS = [
     key: "facebook",
     name: "Facebook Pages",
     color: "blue",
-    loginUrl: "/auth/facebook/login",
+    loginUrl: "/auth/facebook/connect",
     statusUrl: "/auth/facebook/status",
     logoutUrl: "/auth/facebook/logout",
     listUrl: "/auth/facebook/pages",
@@ -19,7 +19,7 @@ const PLATFORMS = [
     key: "instagram",
     name: "Instagram",
     color: "pink",
-    loginUrl: "/auth/facebook/login", // Uses Facebook login
+    loginUrl: "/auth/facebook/connect", // Uses Facebook login
     statusUrl: "/instagram/status",
     logoutUrl: "/instagram/logout",
     listUrl: "/instagram/accounts",
