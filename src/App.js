@@ -52,6 +52,7 @@ function App() {
               <div className={`main ${sidebarOpen ? 'sidebar-open' : ''}`}>
                 <Routes>
                   <Route path="/" element={<HomePage />} />
+                  <Route path="/create-post" element={<CreatePostPage />} />
                   <Route path="/candidates" element={<CandidatesPage />} />
                   <Route path="/ads" element={<AdsPage />} />
                   <Route path="/analytics" element={<AnalyticsPage />} />
@@ -62,15 +63,16 @@ function App() {
                   <Route path="/terms" element={<TermsPage />} />
                   <Route path="/privacy" element={<PrivacyPolicyPage />} />	
   	              <Route path="/data-deletion" element={<DataDeletionPage />} />
-
-                  <Route
-                    path="/create-post"
-                    element={
-                      <ProtectedRoute>
-                        <CreatePostPage />
-                      </ProtectedRoute>
-                    }
-                  />
+{/*
+                  // <Route
+                  //   path="/create-post"
+                  //   element={
+                  //     <ProtectedRoute>
+                  //       <CreatePostPage />
+                  //     </ProtectedRoute>
+                  //   }
+                  // />
+                  */}
                   <Route
                     path="/settings"
                     element={

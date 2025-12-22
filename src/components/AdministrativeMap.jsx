@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix Leaflet default icon issue (must be done once per app, safe to keep here)
+// Fix Leaflet icon issue (safe to keep here)
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -12,7 +12,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-// Red marker icon
+// Red pin icon
 const redPinIcon = L.icon({
   iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
@@ -22,8 +22,7 @@ const redPinIcon = L.icon({
   shadowSize: [41, 41],
 });
 
-const AdministrativeMap = ({ division, district, upazila, union }) => {
-  // Generate location key
+const AdministrativeMap = React.forwardRef(({ division, district, upazila, union }, ref) => {
   const getLocationKey = () => {
     let key = '';
     if (division) key += division;
@@ -33,7 +32,6 @@ const AdministrativeMap = ({ division, district, upazila, union }) => {
     return key;
   };
 
-  // All coordinates live only here
   const coordinates = {
     '': { lat: 23.6850, lon: 90.3563, zoom: 7 },
     Dhaka: { lat: 23.8103, lon: 90.4125, zoom: 8 },
@@ -64,6 +62,7 @@ const AdministrativeMap = ({ division, district, upazila, union }) => {
       center={[coords.lat, coords.lon]}
       zoom={coords.zoom}
       style={{ height: '400px', width: '100%' }}
+      ref={ref}
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -79,6 +78,6 @@ const AdministrativeMap = ({ division, district, upazila, union }) => {
       )}
     </MapContainer>
   );
-};
+});
 
 export default AdministrativeMap;
