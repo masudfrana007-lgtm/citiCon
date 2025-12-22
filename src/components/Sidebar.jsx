@@ -18,7 +18,7 @@ const Sidebar = ({ open, onClose }) => {
 
   const menuItems = [
     { to: "/", label: "Home" },
-    { to: "/create-post", label: "Create Post" },
+    { to: "/create-post", label: "Create Post", requiresAuth: true },
     { to: "/candidates", label: "Candidates" },
     { to: "/ads", label: "Ads" },
     { to: "/analytics", label: "Analytics" },
@@ -63,25 +63,51 @@ const Sidebar = ({ open, onClose }) => {
         </div>
 
         <div className="menu-items">
-          {menuItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              onClick={handleNavClick}
-              className={({ isActive }) =>
-                `menu-item ${isActive ? 'active' : ''}`
-              }
-              end
-            >
-              {item.label}
-            </NavLink>
-          ))}
+          {menuItems.map((item) => {
+            const disabled = item.requiresAuth && !user;
+
+            return (
+              <NavLink
+                key={item.to}
+                to={disabled ? "#" : item.to}
+                onClick={(e) => {
+                  if (disabled) {
+                    e.preventDefault(); // block navigation
+                    return;
+                  }
+                  handleNavClick();
+                }}
+                className={({ isActive }) =>
+                  `menu-item ${isActive ? "active" : ""} ${
+                    disabled ? "disabled" : ""
+                  }`
+                }
+                end
+              >
+                {item.label}
+              </NavLink>
+            );
+          })}
+
+
 
           <div className="menu-divider" />
 
-          <NavLink to="/settings" onClick={handleNavClick} className="menu-item">
+          <NavLink
+            to={user ? "/settings" : "#"}
+            onClick={(e) => {
+              if (!user) {
+                e.preventDefault(); // block navigation
+                return;
+              }
+              handleNavClick();
+            }}
+            className={`menu-item ${!user ? "disabled" : ""}`}
+          >
             Settings
           </NavLink>
+
+          
           <NavLink to="/help" onClick={handleNavClick} className="menu-item">
             Help
           </NavLink>

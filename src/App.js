@@ -6,6 +6,7 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 
 // Components & Pages
+import ProtectedRoute from "./components/ProtectedRoute";
 import Sidebar from './components/Sidebar';
 import HomePage from './pages/HomePage';
 import CreatePostPage from './pages/CreatePostPage';
@@ -27,7 +28,7 @@ function App() {
       <Routes>
         {/* Standalone full-screen Sign-In page – no sidebar, no layout */}
         <Route path="/signin" element={<SignInPage />} />
-	<Route path="/signup" element={<SignUpPage />} />
+	      <Route path="/signup" element={<SignUpPage />} />
 
         {/* All other routes use the full app layout with sidebar and FAB */}
         <Route
@@ -48,14 +49,30 @@ function App() {
               <div className={`main ${sidebarOpen ? 'sidebar-open' : ''}`}>
                 <Routes>
                   <Route path="/" element={<HomePage />} />
-                  <Route path="/create-post" element={<CreatePostPage />} />
                   <Route path="/candidates" element={<CandidatesPage />} />
                   <Route path="/ads" element={<AdsPage />} />
                   <Route path="/analytics" element={<AnalyticsPage />} />
                   <Route path="/transparency" element={<TransparencyPage />} />
                   <Route path="/help" element={<HelpPage />} />
                   <Route path="/admin" element={<AdminPage />} />
-		  <Route path="/settings" element={<SettingsPage />} />
+		              
+                  <Route
+                    path="/create-post"
+                    element={
+                      <ProtectedRoute>
+                        <CreatePostPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute>
+                        <SettingsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
                 </Routes>
 
                 <button className="fab">+</button>
