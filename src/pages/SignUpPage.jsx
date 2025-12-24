@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './SignUpPage.css';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const SignUpPage = () => {
   const [name, setName] = useState('');
@@ -9,6 +10,7 @@ const SignUpPage = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const { refreshUser } = useAuth();
+  const navigate = useNavigate();
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -27,10 +29,9 @@ const SignUpPage = () => {
 
       if (data.success) {
         setMessage('Sign up successful! Redirecting to login...');
-        await refreshUser(); // Fetch full user data
-        setTimeout(() => {
-          window.location.href = '#/signin';
-        }, 2000);
+        await refreshUser();
+        navigate('/signin');
+        
       } else {
         setMessage(data.error || 'Something went wrong');
       }

@@ -1,6 +1,7 @@
 // src/pages/HomePage.jsx
 import React from 'react';
 import './HomePage.css'; // Make sure this file exists or create it
+import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
   return (
@@ -20,7 +21,7 @@ const HomePage = () => {
           </p>
 		<button 
 		  className="get-started-btn"
-		  onClick={() => window.location.href = '#/create-post'}
+		  onClick={() => navigate = '/create-post'}
 		>
 		  GET STARTED
 		</button>

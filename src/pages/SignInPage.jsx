@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './SignInPage.css';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const SignInPage = () => {
   const [email, setEmail] = useState('');
@@ -9,6 +10,7 @@ const SignInPage = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const { refreshUser } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -34,9 +36,8 @@ const SignInPage = () => {
       if (data.success) {
         setMessage('Login successful! Redirecting...');
         await refreshUser();
-        setTimeout(() => {
-          window.location.href = '#/';
-        }, 1200);
+        navigate('/');
+
       } else {
         setMessage(data.error || 'Invalid email or password');
       }
