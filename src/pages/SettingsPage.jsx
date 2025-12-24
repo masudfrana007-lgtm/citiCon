@@ -42,15 +42,15 @@ const PLATFORMS = [
     imageField: "channel_image",
   },
   {
-  key: "linkedin",
-  name: "LinkedIn",
-  color: "linkedin",
-  loginUrl: "/linkedin/connect",
-  statusUrl: "/linkedin/status",
-  logoutUrl: "/linkedin/logout",
-  // LinkedIn personal posting has no sub-accounts
-  listUrl: null,
-  successMessage: "linkedin_connected",
+    key: "linkedin",
+    name: "LinkedIn",
+    color: "linkedin",
+    loginUrl: "/auth/linkedin/connect",
+    statusUrl: "/auth/linkedin/status",
+    logoutUrl: "/auth/linkedin/logout",  
+    // LinkedIn personal posting has no sub-accounts
+    listUrl: null,
+    successMessage: "linkedin_connected",
   },
 
 ];
