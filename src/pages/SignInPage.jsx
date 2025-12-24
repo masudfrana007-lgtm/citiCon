@@ -34,8 +34,10 @@ const SignInPage = () => {
       const data = await response.json();
 
       if (data.success) {
+        console.log('[Login] success, calling refreshUser');
         setMessage('Login successful! Redirecting...');
         await refreshUser();
+        console.log('[Login] refreshUser finished');
         navigate('/');
 
       } else {

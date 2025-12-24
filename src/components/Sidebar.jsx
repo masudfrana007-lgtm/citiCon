@@ -11,6 +11,7 @@ import './Sidebar.css';
 
 const Sidebar = ({ open, onClose }) => {
   const { user, loading, setUser } = useAuth();
+  console.log('[Sidebar] render', { user, loading });
   const navigate = useNavigate();
 
   const theme = useTheme();
