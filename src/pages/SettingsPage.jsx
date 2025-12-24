@@ -41,6 +41,18 @@ const PLATFORMS = [
     nameField: "channel_name",
     imageField: "channel_image",
   },
+  {
+  key: "linkedin",
+  name: "LinkedIn",
+  color: "linkedin",
+  loginUrl: "/linkedin/connect",
+  statusUrl: "/linkedin/status",
+  logoutUrl: "/linkedin/logout",
+  // LinkedIn personal posting has no sub-accounts
+  listUrl: null,
+  successMessage: "linkedin_connected",
+  },
+
 ];
 
 const PlatformCard = ({ platform }) => {

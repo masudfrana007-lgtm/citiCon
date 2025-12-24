@@ -121,3 +121,8 @@
   font-style: italic;
   color: rgba(255, 255, 255, 0.6);
 }
+
+.connect-btn.linkedin {
+  background-color: #0a66c2;
+  color: #fff;
+}

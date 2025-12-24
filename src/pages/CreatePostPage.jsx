@@ -30,6 +30,11 @@ const CreatePostPage = () => {
   const [ytChannels, setYtChannels] = useState([]);
   const [selectedYt, setSelectedYt] = useState('');
 
+  const [liConnected, setLiConnected] = useState(false);
+  const [showLinkedinMediaWarning, setShowLinkedinMediaWarning] = useState(false);
+  const [linkedinMediaConfirmed, setLinkedinMediaConfirmed] = useState(false);
+
+
   const isVideo = file && file.type.startsWith('video/');
 
   const mapRef = useRef();
@@ -112,6 +117,11 @@ const CreatePostPage = () => {
     }
   }, [division, district, upazila, union]);
 
+  useEffect(() => {
+    setLinkedinMediaConfirmed(false);
+  }, [file]);
+
+
   // Load platform connections
   useEffect(() => {
     const loadConnections = async () => {
@@ -150,6 +160,17 @@ const CreatePostPage = () => {
           setYtChannels(chData);
         }
       } catch (err) { console.error(err); }
+
+      // LinkedIn
+      try {
+        const res = await fetch('/linkedin/status', { credentials: 'include' });
+        const data = await res.json();
+        setLiConnected(data.connected);
+      } catch (err) {
+        console.error(err);
+      }
+
+
     };
 
     loadConnections();
@@ -313,6 +334,41 @@ const confirmPost = async () => {
     }
   }
 
+/* =======================
+   LINKEDIN
+======================= */
+if (platforms.includes("linkedin")) {
+  const liName = "LinkedIn Profile";
+
+  addStep("linkedin", liName, "pending");
+
+  try {
+    const res = await fetch("/linkedin/post", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        message: content || title || "",
+      }),
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    addStep("linkedin", liName, "success");
+    setPostSummary(prev => [
+      ...prev,
+      { platform: "LinkedIn", target: liName }
+    ]);
+  } catch (err) {
+    console.error(err);
+    addStep("linkedin", liName, "error");
+    setPostFinished(true);
+    return;
+  }
+}
+  
+
 //  setIsPosting(false);
   setPostFinished(true);
 
@@ -433,6 +489,31 @@ const confirmPost = async () => {
               />
               <span>YouTube {ytConnected && isVideo ? '✓' : '(Connect + Video)'}</span>
             </label>
+
+            <label>
+              <input
+                type="checkbox"
+                checked={platforms.includes('linkedin')}
+                onChange={e => {
+                  const checked = e.target.checked;
+
+                  if (checked && file && !linkedinMediaConfirmed) {
+                    setShowLinkedinMediaWarning(true);
+                    return;
+                  }
+
+                  setPlatforms(
+                    checked
+                      ? [...platforms, 'linkedin']
+                      : platforms.filter(p => p !== 'linkedin')
+                  );
+                }}
+                disabled={!liConnected}
+              />
+              <span>LinkedIn {liConnected ? '✓' : '(Connect in Settings)'}</span>
+            </label>
+
+
           </div>
 
           {/* Facebook Page Dropdown */}
@@ -497,6 +578,39 @@ const confirmPost = async () => {
             </div>
           </div>
         )}
+
+{showLinkedinMediaWarning && (
+  <div className="confirm-modal-overlay">
+    <div className="confirm-modal">
+      <h3>LinkedIn Notice</h3>
+      <p>
+        You have attached media.
+        <br /><br />
+        <strong>LinkedIn will post only the text.</strong><br />
+        Media will not be included.
+      </p>
+
+      <div className="modal-buttons">
+        <button
+          className="confirm-btn"
+          onClick={() => {
+            setShowLinkedinMediaWarning(false);
+            setLinkedinMediaConfirmed(true);
+            setPlatforms(prev => [...prev, 'linkedin']);
+          }}
+        >
+          Continue
+        </button>
+
+        <button onClick={() => setShowLinkedinMediaWarning(false)}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
 
 {isPosting && (
   <div className="posting-overlay">
