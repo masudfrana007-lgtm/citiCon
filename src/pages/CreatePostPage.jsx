@@ -117,9 +117,12 @@ const CreatePostPage = () => {
     }
   }, [division, district, upazila, union]);
 
-  useEffect(() => {
-    setLinkedinMediaConfirmed(false);
-  }, [file]);
+useEffect(() => {
+  if (liConnected && !platforms.includes("linkedin")) {
+    setPlatforms(prev => [...prev, "linkedin"]);
+  }
+}, [liConnected]);
+
 
 
   // Load platform connections
