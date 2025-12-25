@@ -8,6 +8,7 @@ import L from 'leaflet';
 import { postToFacebook } from "../components/platforms/posters/FacebookPoster";
 import { postToYouTube } from "../components/platforms/posters/YouTubePoster";
 import { postToLinkedIn } from "../components/platforms/posters/LinkedInPoster";
+import { postToTwitter } from "../components/platforms/posters/TwitterPoster";
 
 const CreatePostPage = () => {
   const [title, setTitle] = useState('');
@@ -37,6 +38,8 @@ const CreatePostPage = () => {
   const [liConnected, setLiConnected] = useState(false);
   const [showLinkedinMediaWarning, setShowLinkedinMediaWarning] = useState(false);
   const [linkedinMediaConfirmed, setLinkedinMediaConfirmed] = useState(false);
+
+  const [xConnected, setXConnected] = useState(false);
 
 
   const isVideo = file && file.type.startsWith('video/');
@@ -177,6 +180,15 @@ useEffect(() => {
         console.error(err);
       }
 
+      // Twitter
+      try {
+        const res = await fetch('/auth/x/status', { credentials: 'include' });
+        const data = await res.json();
+        setXConnected(data.connected);        
+      } catch (err) {
+        console.error(err);
+      }
+
 
     };
 
@@ -254,137 +266,6 @@ const addStep = (platform, name, status) => {
   });
 };
 
-/*
-const confirmPost = async () => {
-  setShowConfirm(false);
-  setIsPosting(true);
-  setPostSteps([]);
-
-  /* =======================
-     FACEBOOK
-  ======================= */
-/*
-  if (platforms.includes("facebook")) {
-    const fbPage = fbPages.find(p => p.page_id === selectedFbPage);
-    const fbName = fbPage?.page_name || "Facebook Page";
-
-    addStep("facebook", fbName, "pending");
-
-    try {
-      if (!file) {
-        const res = await fetch("/auth/facebook/post", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            pageId: selectedFbPage,
-            message: content || title || "",
-          }),
-        });
-        const data = await res.json();
-        if (data.error) throw new Error(data.error);
-      } else {
-        const fbForm = new FormData();
-        fbForm.append("file", file);
-        fbForm.append("caption", content);
-        fbForm.append("pageId", selectedFbPage);
-
-        const res = await fetch("/auth/facebook/media", {
-          method: "POST",
-          body: fbForm,
-          credentials: "include",
-        });
-        const data = await res.json();
-        if (data.error || !data.id) {
-          throw new Error(data.error?.message || "Facebook upload failed");
-        }
-      }
-
-      addStep("facebook", fbName, "success");
-      setPostSummary(prev => [...prev, { platform: "Facebook", target: fbName }]);
-    } catch (err) {
-      console.error(err);
-      addStep("facebook", fbName, "error");
-      setPostFinished(true);
-    }
-  }
-
-  /* =======================
-     YOUTUBE
-  ======================= */
-/*
-  if (platforms.includes("youtube")) {
-    const ytChannel = ytChannels.find(c => c.channel_id === selectedYt);
-    const ytName = ytChannel?.channel_name || "YouTube Channel";
-
-    addStep("youtube", ytName, "pending");
-
-    try {
-      const ytForm = new FormData();
-      ytForm.append("file", file);
-      ytForm.append("title", title || content.slice(0, 90));
-      ytForm.append("description", content);
-      ytForm.append("channelId", selectedYt);
-
-      const res = await fetch("/auth/youtube/upload", {
-        method: "POST",
-        body: ytForm,
-        credentials: "include",
-      });
-
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-
-      addStep("youtube", ytName, "success");
-      setPostSummary(prev => [...prev, { platform: "YouTube", target: ytName }]);
-    } catch (err) {
-      console.error(err);
-      addStep("youtube", ytName, "error");
-      setPostFinished(true);
-    }
-  }
-
-/* =======================
-   LINKEDIN
-======================= */
-/*
-if (platforms.includes("linkedin")) {
-  const liName = "LinkedIn Profile";
-
-  addStep("linkedin", liName, "pending");
-
-  try {
-    const res = await fetch("/auth/linkedin/post", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        message: content || title || "",
-      }),
-    });
-
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-
-    addStep("linkedin", liName, "success");
-    setPostSummary(prev => [
-      ...prev,
-      { platform: "LinkedIn", target: liName }
-    ]);
-  } catch (err) {
-    console.error(err);
-    addStep("linkedin", liName, "error");
-    setPostFinished(true);
-    return;
-  }
-}
-  
-
-//  setIsPosting(false);
-  setPostFinished(true);
-
-};
-*/
 
 const confirmPost = async () => {
   setShowConfirm(false);
@@ -423,6 +304,14 @@ const confirmPost = async () => {
       });
     }
 
+    if (platforms.includes("twitter")) {
+      await postToTwitter({
+        content,
+        addStep,
+        setPostSummary
+      });
+    }
+    
     setPostFinished(true);
   } catch (err) {
     console.error(err);
@@ -566,6 +455,22 @@ const confirmPost = async () => {
                 disabled={!liConnected}
               />
               <span>LinkedIn {liConnected ? '✓' : '(Connect in Settings)'}</span>
+            </label>
+
+            <label>
+              <input
+                type="checkbox"
+                checked={platforms.includes("twitter")}
+                onChange={e =>
+                  setPlatforms(
+                    e.target.checked
+                      ? [...platforms, "twitter"]
+                      : platforms.filter(p => p !== "twitter")
+                  )
+                }
+                disabled={!xConnected}
+              />
+              <span>X (Twitter) {xConnected ? "✓" : "(Connect in Settings)"}</span>
             </label>
 
 

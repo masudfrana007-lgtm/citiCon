@@ -52,6 +52,17 @@ const PLATFORMS = [
     listUrl: null,
     successMessage: "linkedin_connected",
   },
+  {
+    key: "twitter",
+    name: "X (Twitter)",
+    color: "black",
+    loginUrl: "/auth/x/connect",
+    statusUrl: "/auth/x/status",
+    logoutUrl: "/auth/x/logout",
+    listUrl: null,
+    successMessage: "x_connected",
+  },
+
 
 ];
 
