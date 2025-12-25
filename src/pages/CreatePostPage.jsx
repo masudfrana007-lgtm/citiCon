@@ -166,7 +166,7 @@ useEffect(() => {
 
       // LinkedIn
       try {
-        const res = await fetch('/linkedin/status', { credentials: 'include' });
+        const res = await fetch('/auth/linkedin/status', { credentials: 'include' });
         const data = await res.json();
         setLiConnected(data.connected);
       } catch (err) {
