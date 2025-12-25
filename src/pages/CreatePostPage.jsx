@@ -5,6 +5,10 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
+import { postToFacebook } from "../components/platforms/posters/FacebookPoster";
+import { postToYouTube } from "../components/platforms/posters/YouTubePoster";
+import { postToLinkedIn } from "../components/platforms/posters/LinkedInPoster";
+
 const CreatePostPage = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -250,6 +254,7 @@ const addStep = (platform, name, status) => {
   });
 };
 
+/*
 const confirmPost = async () => {
   setShowConfirm(false);
   setIsPosting(true);
@@ -258,6 +263,7 @@ const confirmPost = async () => {
   /* =======================
      FACEBOOK
   ======================= */
+/*
   if (platforms.includes("facebook")) {
     const fbPage = fbPages.find(p => p.page_id === selectedFbPage);
     const fbName = fbPage?.page_name || "Facebook Page";
@@ -306,6 +312,7 @@ const confirmPost = async () => {
   /* =======================
      YOUTUBE
   ======================= */
+/*
   if (platforms.includes("youtube")) {
     const ytChannel = ytChannels.find(c => c.channel_id === selectedYt);
     const ytName = ytChannel?.channel_name || "YouTube Channel";
@@ -340,6 +347,7 @@ const confirmPost = async () => {
 /* =======================
    LINKEDIN
 ======================= */
+/*
 if (platforms.includes("linkedin")) {
   const liName = "LinkedIn Profile";
 
@@ -376,7 +384,51 @@ if (platforms.includes("linkedin")) {
   setPostFinished(true);
 
 };
+*/
 
+const confirmPost = async () => {
+  setShowConfirm(false);
+  setIsPosting(true);
+  setPostSteps([]);
+
+  try {
+    if (platforms.includes("facebook")) {
+      await postToFacebook({
+        file,
+        content,
+        pageId: selectedFbPage,
+        fbPages,
+        addStep,
+        setPostSummary
+      });
+    }
+
+    if (platforms.includes("youtube")) {
+      await postToYouTube({
+        file,
+        title,
+        content,
+        channelId: selectedYt,
+        ytChannels,
+        addStep,
+        setPostSummary
+      });
+    }
+
+    if (platforms.includes("linkedin")) {
+      await postToLinkedIn({
+        content,
+        addStep,
+        setPostSummary
+      });
+    }
+
+    setPostFinished(true);
+  } catch (err) {
+    console.error(err);
+    setPostFinished(true);
+  }
+};
 
 
   return (
