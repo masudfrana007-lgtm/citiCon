@@ -346,7 +346,7 @@ if (platforms.includes("linkedin")) {
   addStep("linkedin", liName, "pending");
 
   try {
-    const res = await fetch("/linkedin/post", {
+    const res = await fetch("/auth/linkedin/post", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
