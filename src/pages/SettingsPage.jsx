@@ -19,14 +19,15 @@ const PLATFORMS = [
     key: "instagram",
     name: "Instagram",
     color: "pink",
-    loginUrl: "/auth/facebook/connect", // Uses Facebook login
-    statusUrl: "/instagram/status",
-    logoutUrl: "/instagram/logout",
-    listUrl: "/instagram/accounts",
+    loginUrl: "/auth/facebook/connect", // Keep for re-connect
+    statusUrl: "/auth/instagram/status",
+    logoutUrl: "/auth/instagram/logout",
+    listUrl: "/auth/instagram/accounts",
     successMessage: "instagram_connected",
     idField: "ig_id",
     nameField: "username",
     imageField: "profile_picture",
+
   },
   {
     key: "youtube",
@@ -137,42 +138,85 @@ const connect = async () => {
     <div className="platform-card">
       <div className="platform-header">
         <h3>{platform.name}</h3>
-          {platform.key === "instagram" && (
-            <p style={{ fontSize: "0.85em", color: "#666", margin: "5px 0 10px" }}>
-              Connects via Facebook (requires Business/Creator account linked to a Page)
-            </p>
-          )}        
-        <span className="status">{linked ? "Connected ✓" : "Not connected"}</span>
+        {platform.key === "instagram" && (
+          <p style={{ fontSize: "0.85em", color: "#666", margin: "8px 0 12px", lineHeight: "1.4" }}>
+            Connects via Facebook<br />
+            Requires Business or Creator account linked to a Facebook Page
+          </p>
+        )}
+        <span className="status">
+          {linked ? "Connected ✓" : "Not connected"}
+        </span>
       </div>
 
-      {linked ? (
-        <button onClick={disconnect} className="disconnect-btn">
-          Disconnect
-        </button>
-      ) : (
+      {/* Special case for Instagram when not connected */}
+      {platform.key === "instagram" && !linked && (
+        <div className="instagram-notice" style={{
+          backgroundColor: "#f8f9fa",
+          border: "1px dashed #ddd",
+          borderRadius: "8px",
+          padding: "16px",
+          textAlign: "center",
+          color: "#555",
+          fontSize: "0.95em",
+          margin: "10px 0"
+        }}>
+          <p style={{ margin: "0 0 10px 0" }}>
+            <strong>Instagram accounts appear automatically</strong> after connecting Facebook Pages.
+          </p>
+          <p style={{ margin: 0 }}>
+            Make sure your Instagram account is:
+            <br />• Professional (Business or Creator)
+            <br />• Linked to one of your Facebook Pages
+          </p>
+        </div>
+      )}
+
+      {/* Normal Connect button for other platforms OR if Instagram is connected */}
+      {!linked && platform.key !== "instagram" && (
         <button onClick={connect} className={`connect-btn ${platform.color}`}>
           Connect
         </button>
       )}
 
+      {/* Disconnect button when linked (all platforms) */}
+      {linked && (
+        <button onClick={disconnect} className="disconnect-btn">
+          Disconnect
+        </button>
+      )}
+
+      {/* Connected Accounts List (same for FB and IG) */}
       {linked && items.length > 0 && (
         <div className="accounts-list">
-          <p className="accounts-title">Connected Accounts/Pages:</p>
+          <p className="accounts-title">Connected Accounts:</p>
           {items.map((item) => (
             <div key={item[platform.idField]} className="account-item">
               {item[platform.imageField] && (
-                <img src={item[platform.imageField]} alt="" className="account-img" />
+                <img 
+                  src={item[platform.imageField]} 
+                  alt={item[platform.nameField]} 
+                  className="account-img" 
+                />
               )}
               <div>
-                <div className="account-name">{item[platform.nameField]}</div>
-                {/*<div className="account-id">{item[platform.idField]}</div>*/}
+                <div className="account-name">
+                  {platform.key === "instagram" ? "@" : ""}{item[platform.nameField]}
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* If linked but no accounts (rare edge case) */}
+      {linked && items.length === 0 && (
+        <p style={{ fontSize: "0.9em", color: "#888", fontStyle: "italic", marginTop: "10px" }}>
+          No accounts found. Try reconnecting or check linking in Instagram app.
+        </p>
+      )}
     </div>
-  );
+  );  
 };
 
 const SettingsPage = () => {
