@@ -36,6 +36,7 @@ export async function postToFacebook({
       if (!data.id) throw new Error("Facebook upload failed");   
 
       console.log("fb post id :", data.id);   
+      console.log("fb post data :", data);   
 
   // Get public URL
       /*
@@ -67,7 +68,7 @@ export async function postToFacebook({
       return {
         postId: data.id,
         permalink: `https://www.facebook.com/${data.id}`,
-        mediaUrl: data.directMediaUrl // direct URL from backend
+        mediaUrl: data.mediaUrl // direct URL from backend
       };      
   }
 } catch (err) {
