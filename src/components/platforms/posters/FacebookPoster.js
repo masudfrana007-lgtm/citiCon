@@ -34,10 +34,12 @@ export async function postToFacebook({
       });
       const data = await res.json();
       if (!data.id) throw new Error("Facebook upload failed");      
-      
+
   // Get public URL
+      /*
       const postId = data.id;
-      const postRes = await fetch(`https://graph.facebook.com/v19.0/${postId}?fields=permalink_url&access_token=${/* get page token from DB if needed */}`);
+      const postRes = await fetch(`https://graph.facebook.com/v19.0/${postId}?fields=permalink_url&access_token=${}`);
+      /*
       const postData = await postRes.json();
       const permalink = postData.permalink_url || `https://facebook.com/${postId}`;
 
@@ -55,11 +57,14 @@ export async function postToFacebook({
           response_json: data
         })
       });
-
-      addStep("facebook", name, "success");
-      setPostSummary(prev => [...prev, { platform: "Facebook", target: name, url: permalink }]);
-      return { postId, mediaUrl: permalink }; // Return for Instagram use
-  } catch (err) {
+*/
+      addStep("facebook", fbName, "success");
+//      setPostSummary(prev => [...prev, { platform: "Facebook", target: name, url: permalink }]);
+      setPostSummary(prev => [...prev, { platform: "Facebook", target: fbName }]);
+//      return { postId, mediaUrl: permalink }; // Return for Instagram use
+      return {};
+  }
+} catch (err) {
     addStep("facebook", fbName, "error");
     throw err;
   }
