@@ -138,65 +138,71 @@ const connect = async () => {
     <div className="platform-card">
       <div className="platform-header">
         <h3>{platform.name}</h3>
+        
+        {/* Instagram hint — always visible */}
         {platform.key === "instagram" && (
-          <p style={{ fontSize: "0.85em", color: "#666", margin: "8px 0 12px", lineHeight: "1.4" }}>
+          <p style={{ 
+            fontSize: "0.85em", 
+            color: "#666", 
+            margin: "8px 0 12px", 
+            lineHeight: "1.4" 
+          }}>
             Connects via Facebook<br />
             Requires Business or Creator account linked to a Facebook Page
           </p>
         )}
+        
         <span className="status">
           {linked ? "Connected ✓" : "Not connected"}
         </span>
       </div>
 
-      {/* Special case for Instagram when not connected */}
+      {/* Instagram: no Connect button + helpful message */}
       {platform.key === "instagram" && !linked && (
-        <div className="instagram-notice" style={{
-          backgroundColor: "#f8f9fa",
-          border: "1px dashed #ddd",
+        <div style={{
+          backgroundColor: "#fdf8f9",
+          border: "1px dashed #ffb3c6",
           borderRadius: "8px",
           padding: "16px",
           textAlign: "center",
           color: "#555",
-          fontSize: "0.95em",
-          margin: "10px 0"
+          fontSize: "0.94em",
+          margin: "12px 0"
         }}>
-          <p style={{ margin: "0 0 10px 0" }}>
-            <strong>Instagram accounts appear automatically</strong> after connecting Facebook Pages.
-          </p>
-          <p style={{ margin: 0 }}>
-            Make sure your Instagram account is:
-            <br />• Professional (Business or Creator)
-            <br />• Linked to one of your Facebook Pages
-          </p>
+          <strong>Instagram accounts appear automatically</strong> after connecting Facebook Pages.<br /><br />
+          Make sure your Instagram account is:<br />
+          • Professional (Business or Creator)<br />
+          • Linked to one of your Facebook Pages
         </div>
       )}
 
-      {/* Normal Connect button for other platforms OR if Instagram is connected */}
+      {/* Connect button for every platform EXCEPT Instagram */}
       {!linked && platform.key !== "instagram" && (
         <button onClick={connect} className={`connect-btn ${platform.color}`}>
           Connect
         </button>
       )}
 
-      {/* Disconnect button when linked (all platforms) */}
-      {linked && (
+      {/* Disconnect button for every platform EXCEPT Instagram */}
+      {linked && platform.key !== "instagram" && (
         <button onClick={disconnect} className="disconnect-btn">
           Disconnect
         </button>
       )}
 
-      {/* Connected Accounts List (same for FB and IG) */}
+      {/* Connected Accounts List */}
       {linked && items.length > 0 && (
         <div className="accounts-list">
-          <p className="accounts-title">Connected Accounts:</p>
+          <p className="accounts-title">
+            {platform.key === "instagram" ? "Connected Instagram Account:" : "Connected Accounts/Pages:"}
+          </p>
           {items.map((item) => (
             <div key={item[platform.idField]} className="account-item">
               {item[platform.imageField] && (
-                <img 
-                  src={item[platform.imageField]} 
-                  alt={item[platform.nameField]} 
-                  className="account-img" 
+                <img
+                  src={item[platform.imageField]}
+                  alt={item[platform.nameField]}
+                  className="account-img"
                 />
               )}
               <div>
@@ -209,12 +215,7 @@ const connect = async () => {
         </div>
       )}
 
-      {/* If linked but no accounts (rare edge case) */}
-      {linked && items.length === 0 && (
-        <p style={{ fontSize: "0.9em", color: "#888", fontStyle: "italic", marginTop: "10px" }}>
-          No accounts found. Try reconnecting or check linking in Instagram app.
-        </p>
-      )}
+      {/* Remove the "No accounts found" message completely — it was showing under LinkedIn/X */}
     </div>
   );  
 };
