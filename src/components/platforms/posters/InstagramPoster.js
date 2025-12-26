@@ -1,4 +1,5 @@
 export async function postToInstagram({
+  mediaUrl,
   file,
   content,
   igId,

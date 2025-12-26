@@ -33,11 +33,32 @@ export async function postToFacebook({
         credentials: "include",
       });
       const data = await res.json();
-      if (!data.id) throw new Error("Facebook upload failed");
-    }
+      if (!data.id) throw new Error("Facebook upload failed");      
+      
+  // Get public URL
+      const postId = data.id;
+      const postRes = await fetch(`https://graph.facebook.com/v19.0/${postId}?fields=permalink_url&access_token=${/* get page token from DB if needed */}`);
+      const postData = await postRes.json();
+      const permalink = postData.permalink_url || `https://facebook.com/${postId}`;
 
-    addStep("facebook", fbName, "success");
-    setPostSummary(prev => [...prev, { platform: "Facebook", target: fbName }]);
+      // Save to DB
+      await fetch("/post/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          platform: "facebook",
+          sub_account_id: pageId,
+          caption: content,
+          media_url: permalink, // or extract actual image/video URL if needed
+          post_id: postId,
+          response_json: data
+        })
+      });
+
+      addStep("facebook", name, "success");
+      setPostSummary(prev => [...prev, { platform: "Facebook", target: name, url: permalink }]);
+      return { postId, mediaUrl: permalink }; // Return for Instagram use
   } catch (err) {
     addStep("facebook", fbName, "error");
     throw err;

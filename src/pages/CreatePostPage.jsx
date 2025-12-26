@@ -272,29 +272,35 @@ const confirmPost = async () => {
   setShowConfirm(false);
   setIsPosting(true);
   setPostSteps([]);
+  let fbMediaUrl = null;
 
   try {
     if (platforms.includes("facebook")) {
-      await postToFacebook({
-        file,
-        content,
-        pageId: selectedFbPage,
-        fbPages,
-        addStep,
-        setPostSummary
-      });
-    }
+      const fbResult = await postToFacebook({
+          file,
+          content,
+          pageId: selectedFbPage,
+          fbPages,
+          addStep,
+          setPostSummary
+        });
+        fbMediaUrl = fbResult.mediaUrl; // from return above
+      }
 
-    if (platforms.includes("instagram")) {
-      await postToInstagram({
-        file,
-        content,
-        igId: selectedIg,
-        igAccounts,
-        addStep,
-        setPostSummary
-      });
-    }
+      if (platforms.includes("instagram")) {
+        if (!fbMediaUrl && file) {
+          alert("Instagram requires media — posting to Facebook first");
+          return;
+        }
+        await postToInstagram({
+          mediaUrl: fbMediaUrl, // use Facebook URL
+          content,
+          igId: selectedIg,
+          igAccounts,
+          addStep,
+          setPostSummary
+        });
+      }
 
     if (platforms.includes("youtube")) {
       await postToYouTube({
@@ -431,9 +437,9 @@ const confirmPost = async () => {
                 type="checkbox"
                 checked={platforms.includes('instagram')}
                 onChange={e => setPlatforms(e.target.checked ? [...platforms, 'instagram'] : platforms.filter(p => p !== 'instagram'))}
-                disabled={!igConnected || !file}
+                disabled={!igConnected || !file || !platforms.includes('facebook')}
               />
-              <span>Instagram {igConnected && file ? '✓' : '(Connect + Media)'}</span>
+              <span>Instagram {igConnected && file && platforms.includes('facebook') ? '✓' : '(Requires Facebook + Media)'}</span>
             </label>
 
             <label>
