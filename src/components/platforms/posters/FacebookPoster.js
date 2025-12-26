@@ -33,7 +33,9 @@ export async function postToFacebook({
         credentials: "include",
       });
       const data = await res.json();
-      if (!data.id) throw new Error("Facebook upload failed");      
+      if (!data.id) throw new Error("Facebook upload failed");   
+
+      console.log("fb post id :", data.id);   
 
   // Get public URL
       /*
@@ -62,7 +64,9 @@ export async function postToFacebook({
 //      setPostSummary(prev => [...prev, { platform: "Facebook", target: name, url: permalink }]);
       setPostSummary(prev => [...prev, { platform: "Facebook", target: fbName }]);
 //      return { postId, mediaUrl: permalink }; // Return for Instagram use
-      return {};
+      return {
+        mediaUrl: `https://www.facebook.com/${data.id}`
+      };
   }
 } catch (err) {
     addStep("facebook", fbName, "error");

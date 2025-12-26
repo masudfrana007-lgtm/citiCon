@@ -284,7 +284,9 @@ const confirmPost = async () => {
           addStep,
           setPostSummary
         });
+        console.log("fb result :",fbResult );
         fbMediaUrl = fbResult.mediaUrl; // from return above
+        console.log("url :",fbMediaUrl );
       }
 
       if (platforms.includes("instagram")) {
