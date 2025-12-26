@@ -9,6 +9,7 @@ import { postToFacebook } from "../components/platforms/posters/FacebookPoster";
 import { postToYouTube } from "../components/platforms/posters/YouTubePoster";
 import { postToLinkedIn } from "../components/platforms/posters/LinkedInPoster";
 import { postToTwitter } from "../components/platforms/posters/TwitterPoster";
+import { postToInstagram } from "../components/platforms/posters/InstagramPoster";
 
 const CreatePostPage = () => {
   const [title, setTitle] = useState('');
@@ -284,6 +285,17 @@ const confirmPost = async () => {
       });
     }
 
+    if (platforms.includes("instagram")) {
+      await postToInstagram({
+        file,
+        content,
+        igId: selectedIg,
+        igAccounts,
+        addStep,
+        setPostSummary
+      });
+    }
+
     if (platforms.includes("youtube")) {
       await postToYouTube({
         file,
@@ -419,9 +431,9 @@ const confirmPost = async () => {
                 type="checkbox"
                 checked={platforms.includes('instagram')}
                 onChange={e => setPlatforms(e.target.checked ? [...platforms, 'instagram'] : platforms.filter(p => p !== 'instagram'))}
-                disabled={!igConnected}
+                disabled={!igConnected || !file}
               />
-              <span>Instagram {igConnected ? '✓' : '(Connect in Settings)'}</span>
+              <span>Instagram {igConnected && file ? '✓' : '(Connect + Media)'}</span>
             </label>
 
             <label>
@@ -490,13 +502,13 @@ const confirmPost = async () => {
           )}
 
           {/* Instagram Account Dropdown */}
-          {platforms.includes('instagram') && igConnected && (
+          {platforms.includes('instagram') && igConnected && file && (
             <div className="mt-4">
               <label>Select Instagram Account</label>
               <select value={selectedIg} onChange={e => setSelectedIg(e.target.value)} className="platform-select">
                 <option value="">-- Choose Account --</option>
                 {igAccounts.map(a => (
-                  <option key={a.ig_id} value={a.ig_id}>{a.username}</option>
+                  <option key={a.ig_id} value={a.ig_id}>@{a.username}</option>
                 ))}
               </select>
             </div>
