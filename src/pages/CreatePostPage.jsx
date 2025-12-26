@@ -150,11 +150,11 @@ useEffect(() => {
 
       // Instagram
       try {
-        const res = await fetch('/instagram/status', { credentials: 'include' });
+        const res = await fetch('/auth/instagram/status', { credentials: 'include' });
         const data = await res.json();
         setIgConnected(data.connected);
         if (data.connected) {
-          const accRes = await fetch('/instagram/accounts', { credentials: 'include' });
+          const accRes = await fetch('/auth/instagram/accounts', { credentials: 'include' });
           const accData = await accRes.json();
           setIgAccounts(accData);
         }
