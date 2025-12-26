@@ -138,26 +138,12 @@ const connect = async () => {
     <div className="platform-card">
       <div className="platform-header">
         <h3>{platform.name}</h3>
-        
-        {/* Instagram hint — always visible */}
-        {platform.key === "instagram" && (
-          <p style={{ 
-            fontSize: "0.85em", 
-            color: "#666", 
-            margin: "8px 0 12px", 
-            lineHeight: "1.4" 
-          }}>
-            Connects via Facebook<br />
-            Requires Business or Creator account linked to a Facebook Page
-          </p>
-        )}
-        
         <span className="status">
           {linked ? "Connected ✓" : "Not connected"}
         </span>
       </div>
 
-      {/* Instagram: no Connect button + helpful message */}
+      {/* Special case for Instagram when not connected */}
       {platform.key === "instagram" && !linked && (
         <div style={{
           backgroundColor: "#fdf8f9",
@@ -215,7 +201,20 @@ const connect = async () => {
         </div>
       )}
 
-      {/* Remove the "No accounts found" message completely — it was showing under LinkedIn/X */}
+      {/* Instagram hint text — now at the bottom, always visible when connected or not */}
+      {platform.key === "instagram" && (
+        <p style={{
+          fontSize: "0.85em",
+          color: "#777",
+          fontStyle: "italic",
+          textAlign: "center",
+          margin: "16px 0 8px",
+          lineHeight: "1.4"
+        }}>
+          Connects via Facebook<br />
+          Requires Business or Creator account linked to a Facebook Page
+        </p>
+      )}
     </div>
   );  
 };
