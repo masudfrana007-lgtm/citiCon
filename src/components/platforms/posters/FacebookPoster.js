@@ -65,8 +65,9 @@ export async function postToFacebook({
       setPostSummary(prev => [...prev, { platform: "Facebook", target: fbName }]);
 //      return { postId, mediaUrl: permalink }; // Return for Instagram use
       return {
-        mediaUrl: `https://www.facebook.com/${data.id}`
-      };
+        postId: data.id,
+        mediaUrl: data.mediaUrl // direct URL from backend
+      };      
   }
 } catch (err) {
     addStep("facebook", fbName, "error");
