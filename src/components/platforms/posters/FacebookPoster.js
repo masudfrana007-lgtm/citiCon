@@ -66,7 +66,8 @@ export async function postToFacebook({
 //      return { postId, mediaUrl: permalink }; // Return for Instagram use
       return {
         postId: data.id,
-        mediaUrl: data.mediaUrl // direct URL from backend
+        permalink: `https://www.facebook.com/${data.id}`,
+        mediaUrl: data.directMediaUrl // direct URL from backend
       };      
   }
 } catch (err) {
