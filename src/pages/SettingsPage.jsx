@@ -91,20 +91,6 @@ const PlatformCard = ({ platform }) => {
     }
   };
 
-  // const connect = () => {
-  //   const popup = window.open(
-  //     platform.loginUrl,
-  //     platform.key,
-  //     "width=600,height=700,scrollbars=yes"
-  //   );
-  //   const timer = setInterval(() => {
-  //     if (popup.closed) {
-  //       clearInterval(timer);
-  //       refreshStatus();
-  //       loadItems();
-  //     }
-  //   }, 500);
-  // };
 const connect = async () => {
   // 🔹 X (Twitter) needs init first
   if (platform.key === "twitter") {
@@ -151,6 +137,11 @@ const connect = async () => {
     <div className="platform-card">
       <div className="platform-header">
         <h3>{platform.name}</h3>
+          {platform.key === "instagram" && (
+            <p style={{ fontSize: "0.85em", color: "#666", margin: "5px 0 10px" }}>
+              Connects via Facebook (requires Business/Creator account linked to a Page)
+            </p>
+          )}        
         <span className="status">{linked ? "Connected ✓" : "Not connected"}</span>
       </div>
 
