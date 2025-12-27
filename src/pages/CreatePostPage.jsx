@@ -26,7 +26,8 @@ const CreatePostPage = () => {
   // Platform connections
   const [fbConnected, setFbConnected] = useState(false);
   const [fbPages, setFbPages] = useState([]);
-  const [selectedFbPage, setSelectedFbPage] = useState('');
+//  const [selectedFbPage, setSelectedFbPage] = useState('');
+  const [selectedFbPages, setSelectedFbPages] = useState([]);
 
   const [igConnected, setIgConnected] = useState(false);
   const [igAccounts, setIgAccounts] = useState([]);
@@ -266,7 +267,9 @@ useEffect(() => {
     if (!file) return alert("Please upload a media file.");
     if (platforms.length === 0) return alert("Select at least one platform.");
 
-    if (platforms.includes("facebook") && !selectedFbPage) return alert("Please select a Facebook Page.");
+    if (platforms.includes("facebook") && selectedFbPages.length === 0) {
+          return alert("Please select at least one Facebook Page.");
+        }
     if (platforms.includes("instagram") && !selectedIg) return alert("Please select an Instagram account.");
     if (platforms.includes("youtube") && !selectedYt) return alert("Please select a YouTube channel.");
     if (platforms.includes("youtube") && !isVideo) return alert("YouTube only accepts video files.");
@@ -284,7 +287,8 @@ const resetForm = () => {
   setFile(null);
   setPreview("");
   setPlatforms([]);
-  setSelectedFbPage("");
+//  setSelectedFbPage("");
+  setSelectedFbPages([]);
   setSelectedIg("");
   setSelectedYt("");
   setPostSteps([]);
@@ -475,15 +479,35 @@ const confirmPost = async () => {
   let fbMediaUrl = null;
 
   try {
-    if (platforms.includes("facebook")) {
-      const fbResult = await postToFacebook({
-          file,
-          content,
-          pageId: selectedFbPage,
-          fbPages,
-          addStep,
-          setPostSummary
-        });
+      if (platforms.includes("facebook")) {
+        if (selectedFbPages.length === 0) throw new Error("No Facebook pages selected");
+
+        for (const pageId of selectedFbPages) {
+          const page = fbPages.find(p => p.page_id === pageId);
+          const pageName = page?.page_name || "Facebook Page";
+
+          // Add pending step for this specific page
+          addStep("facebook", pageName, "pending");
+
+          try {
+            await postToFacebook({
+              file,
+              content,
+              pageId,
+              fbPages, // still passed for lookup if needed
+              addStep, // we use it inside to update this page's status
+              setPostSummary
+            });
+
+            // Update to success for this page
+            addStep("facebook", pageName, "success");
+            setPostSummary(prev => [...prev, { platform: "Facebook", target: pageName }]);
+          } catch (err) {
+            addStep("facebook", pageName, "error");
+            console.error(`Failed to post to Facebook page ${pageName}:`, err);
+            // Continue to next page even if one fails
+          }
+        }
       }
 
       if (platforms.includes("instagram")) {
@@ -755,13 +779,34 @@ const confirmPost = async () => {
           {/* Facebook Page Dropdown */}
           {platforms.includes('facebook') && fbConnected && (
             <div className="mt-4">
-              <label>Select Facebook Page</label>
-              <select value={selectedFbPage} onChange={e => setSelectedFbPage(e.target.value)} className="platform-select">
-                <option value="">-- Choose Page --</option>
-                {fbPages.map(p => (
-                  <option key={p.page_id} value={p.page_id}>{p.page_name}</option>
+              <label>Select Facebook Pages (you can choose multiple)</label>
+              <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #ddd', padding: '10px', borderRadius: '8px' }}>
+                {fbPages.map(page => (
+                  <label key={page.page_id} style={{ display: 'block', margin: '8px 0' }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedFbPages.includes(page.page_id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedFbPages(prev => [...prev, page.page_id]);
+                        } else {
+                          setSelectedFbPages(prev => prev.filter(id => id !== page.page_id));
+                        }
+                      }}
+                    />
+                    <span style={{ marginLeft: '8px' }}>{page.page_name}</span>
+                  </label>
                 ))}
-              </select>
+              </div>
+              {fbPages.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedFbPages(fbPages.map(p => p.page_id))}
+                  style={{ marginTop: '10px', fontSize: '14px', padding: '6px 12px' }}
+                >
+                  Select All
+                </button>
+              )}
             </div>
           )}
 
