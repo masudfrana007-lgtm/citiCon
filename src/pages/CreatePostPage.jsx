@@ -872,11 +872,10 @@ const confirmPost = async () => {
 
 {isPosting && (
   <div className="posting-overlay">
-    <div className={`posting-box ${postFinished ? "success" : ""}`}>
+    <div className={`posting-box ${postFinished ? "finished" : ""}`}>
       {!postFinished ? (
         <>
           <h3>Publishing your post</h3>
-
           {postSteps.map(step => (
             <div key={step.platform + step.name} className="posting-row">
               <strong>{step.platform.toUpperCase()}</strong> – {step.name}
@@ -887,25 +886,30 @@ const confirmPost = async () => {
               </span>
             </div>
           ))}
-
           <p className="posting-note">
             Please don’t close this page while posting…
           </p>
         </>
       ) : (
         <>
-          <h3>Post Published Successfully 🎉</h3>
-
-          {postSummary.map((p, i) => (
-            <div key={i} className="posting-row">
-              <strong>{p.platform}</strong> – {p.target} ✅
+          {/* No headline — just the clean list */}
+          {postSteps.map(step => (
+            <div
+              key={step.platform + step.name}
+              className={`posting-row ${step.status}`}
+            >
+              <strong>{step.platform.toUpperCase()}</strong> – {step.name}
+              <span>
+                {step.status === "success" && " ✅"}
+                {step.status === "error" && " ❌"}
+              </span>
             </div>
           ))}
 
           <button
             className="confirm-btn"
-            style={{ marginTop: "20px" }}
-            onClick={() => resetForm()}
+            style={{ marginTop: "30px" }}
+            onClick={resetForm}
           >
             Done
           </button>

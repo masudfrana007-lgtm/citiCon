@@ -294,3 +294,18 @@ select:focus {
   background: #1976d2;
   color: white;
 }
+
+.posting-box.finished .posting-row {
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+.posting-box.finished .posting-row span {
+  margin-left: 10px;
+  font-size: 18px;
+}
+
+.posting-box.finished strong {
+  min-width: 100px;
+  display: inline-block;
+}
