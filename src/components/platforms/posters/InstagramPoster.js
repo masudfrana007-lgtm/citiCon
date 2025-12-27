@@ -1,58 +1,5 @@
-// InstagramPoster.js - Enhanced with detailed logging
+// src/components/platforms/posters/InstagramPoster.js
 
-// ===============================
-// 🧩 Helpers (REQUIRED)
-// ===============================
-function getImageDimensions(file) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve({
-        width: img.width,
-        height: img.height
-      });
-    };
-
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Failed to load image"));
-    };
-
-    img.src = url;
-  });
-}
-
-function getVideoInfo(file) {
-  return new Promise((resolve, reject) => {
-    const video = document.createElement("video");
-    const url = URL.createObjectURL(file);
-
-    video.preload = "metadata";
-
-    video.onloadedmetadata = () => {
-      URL.revokeObjectURL(url);
-      resolve({
-        width: video.videoWidth,
-        height: video.videoHeight,
-        duration: video.duration
-      });
-    };
-
-    video.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Failed to load video metadata"));
-    };
-
-    video.src = url;
-  });
-}
-
-// ===============================
-// 🚀 Main Poster Function
-// ===============================
 export async function postToInstagram({
   file,
   content,
@@ -62,42 +9,20 @@ export async function postToInstagram({
   setPostSummary
 }) {
   const account = igAccounts.find(a => a.ig_id === igId);
-  const name = account ? `@${account.username}` : "Instagram";
+  const igName = account ? `@${account.username}` : "Instagram";
 
-  addStep("instagram", name, "pending");
+  // initial UI state
+  addStep("instagram", igName, "pending");
+
+  let published = false;
 
   try {
-    // ========================================
-    // 🔍 FILE INSPECTION
-    // ========================================
-    console.group("📋 FILE DETAILS - BEFORE UPLOAD");
-    console.log("File Object:", file);
-
-    const isVideo = file.type.startsWith("video/");
-    const isImage = file.type.startsWith("image/");
-
-    console.log("Type:", isVideo ? "VIDEO" : isImage ? "IMAGE" : "UNKNOWN");
-    console.log("Size:", `${(file.size / 1024 / 1024).toFixed(2)} MB`);
-    console.log("MIME:", file.type);
-
-    if (isImage) {
-      const d = await getImageDimensions(file);
-      console.log("Image:", d.width, "x", d.height);
-    }
-
-    if (isVideo) {
-      const v = await getVideoInfo(file);
-      console.log("Video:", v.width, "x", v.height, "Duration:", v.duration);
-    }
-
-    console.groupEnd();
-
-    // ========================================
-    // 📤 UPLOAD
-    // ========================================
+    // ===============================
+    // 📤 Upload to backend (SSE)
+    // ===============================
     const form = new FormData();
     form.append("file", file);
-    form.append("caption", content);
+    form.append("caption", content || "");
     form.append("igId", igId);
 
     const res = await fetch("/auth/instagram/media", {
@@ -107,36 +32,38 @@ export async function postToInstagram({
     });
 
     if (!res.body) {
-      throw new Error("Streaming not supported by browser");
+      throw new Error("Browser does not support streaming responses");
     }
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder("utf-8");
     let buffer = "";
-    let published = false;
 
-    // ========================================
-    // 📡 STREAM HANDLING
-    // ========================================
+    // ===============================
+    // 📡 SSE reader loop
+    // ===============================
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
 
       buffer += decoder.decode(value, { stream: true });
-      const parts = buffer.split("\n\n");
-      buffer = parts.pop() || "";
 
-      for (const part of parts) {
-        if (!part.startsWith("data:")) continue;
+      const events = buffer.split("\n\n");
+      buffer = events.pop() || "";
 
-        const msg = JSON.parse(part.slice(5).trim());
+      for (const event of events) {
+        if (!event.startsWith("data:")) continue;
 
+        const msg = JSON.parse(event.slice(5).trim());
+
+        // Always reflect backend state
         addStep("instagram", name, {
           step: msg.step,
-          status: msg.status,
+          status: msg.status || "pending",
           error: msg.error || null
         });
 
+        // Publish confirmed
         if (msg.step === "publish" && msg.status === "success") {
           published = true;
           setPostSummary(prev => [
@@ -145,24 +72,29 @@ export async function postToInstagram({
           ]);
         }
 
+        // Backend fatal error
         if (msg.step === "fatal") {
           throw new Error(msg.error || "Instagram fatal error");
         }
 
+        // Step-level error
         if (msg.status === "error") {
           throw new Error(msg.error || "Instagram failed");
         }
       }
     }
 
+    // ===============================
+    // ✅ Final check
+    // ===============================
     if (!published) {
-      throw new Error("Instagram post failed (not published)");
+      throw new Error("Instagram post was not published");
     }
 
     addStep("instagram", name, "success");
 
   } catch (err) {
-    console.error("Instagram post error:", err.message);
+    console.error("Instagram error:", err.message);
 
     addStep("instagram", name, {
       step: "fatal",

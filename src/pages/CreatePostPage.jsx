@@ -475,10 +475,14 @@ const confirmPost = async () => {
       }
 
       if (platforms.includes("instagram")) {
-      if (!file) {
-        alert("Instagram requires an image or video");
-        return;
-      }        
+        if (!file) throw new Error("Instagram requires media");
+        if (!selectedIg) throw new Error("Please select an Instagram account");   
+
+        const igAccount = igAccounts.find(a => a.ig_id === selectedIg);
+        const igName = igAccount ? `@${igAccount.username}` : "Instagram Account";
+
+        addStep("instagram", igName, "pending");
+        
         await postToInstagram({
           file, // use Facebook URL
           content,
@@ -579,7 +583,7 @@ const confirmPost = async () => {
             </MapContainer>
           </div>
         </div>
-        
+
 {/* Media Upload */}
 <div className="media-section">
   <h3>Media (Image/Video)</h3>
@@ -671,7 +675,6 @@ const confirmPost = async () => {
                 disabled={
                   !igConnected || 
                   !file || 
-                  !platforms.includes('facebook') || 
                   !igValidation.valid ||
                   isValidating
                 }
@@ -680,9 +683,8 @@ const confirmPost = async () => {
                 Instagram{' '}
                 {!igConnected && '(Connect in Settings)'}
                 {igConnected && !file && '(Requires Media)'}
-                {igConnected && file && !platforms.includes('facebook') && '(Requires Facebook)'}
-                {igConnected && file && platforms.includes('facebook') && igValidation.valid && '✓'}
-                {igConnected && file && platforms.includes('facebook') && !igValidation.valid && '(Media Invalid)'}
+                {igConnected && file && igValidation.valid && '✓'}
+                {igConnected && file && !igValidation.valid && '(Media Invalid)'}
               </span>
             </label>
 
