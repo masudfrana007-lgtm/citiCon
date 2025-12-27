@@ -13,7 +13,7 @@ export async function postToInstagram({
 
   try {
     const form = new FormData();
-    form.append("file", file);        // ✅ REQUIRED
+    form.append("file", file);
     form.append("caption", content);
     form.append("igId", igId);
 
@@ -25,18 +25,25 @@ export async function postToInstagram({
 
     const data = await res.json();
 
-    if (!res.ok || data.error) {
-      throw new Error(data.message || "Instagram post failed");
+    // 🔥 LOG EVERYTHING BACKEND SENT
+    console.group("📸 Instagram Backend Response");
+    console.log("Success:", data.success);
+    console.log("Steps:", data.steps);
+    console.groupEnd();
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || "Instagram post failed");
     }
 
     addStep("instagram", name, "success");
+
     setPostSummary(prev => [
       ...prev,
       { platform: "Instagram", target: name }
     ]);
 
   } catch (err) {
-    console.error(err);
+    console.error("❌ Instagram Post Error:", err.message);
     addStep("instagram", name, "error");
     throw err;
   }
