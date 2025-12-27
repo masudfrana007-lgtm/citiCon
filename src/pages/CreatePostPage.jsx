@@ -382,22 +382,34 @@ const validateInstagramMedia = async (file) => {
         };
       }
 
-      // Check resolution (minimum 540x960)
-      if (videoInfo.width < 540 || videoInfo.height < 960) {
-        return { 
-          valid: false, 
-          reason: `Video resolution too low. Minimum 540x960px (current: ${videoInfo.width}x${videoInfo.height})` 
+      // -------------------------
+      // Resolution: min side ≥ 540px
+      // -------------------------
+      const minSide = Math.min(videoInfo.width, videoInfo.height);
+      if (minSide < 540) {
+        return {
+          valid: false,
+          reason: `Video resolution too low. Minimum side must be ≥ 540px (current: ${videoInfo.width}×${videoInfo.height})`
         };
       }
 
-      // Check aspect ratio (9:16 is ideal, but 4:5 to 9:16 works)
+      // -------------------------
+      // Aspect ratio: 4:5 → 9:16
+      // -------------------------
       const aspectRatio = videoInfo.width / videoInfo.height;
-      if (aspectRatio < 0.8 || aspectRatio > 1) {
-        return { 
-          valid: false, 
-          reason: `Video aspect ratio should be between 4:5 and 9:16 (current: ${aspectRatio.toFixed(2)}:1). Vertical videos work best.` 
+      const minRatio = 4 / 5;    // 0.8
+      const maxRatio = 9 / 16;   // 0.5625
+
+      // Normalize (handles horizontal videos safely)
+      const normalizedRatio = Math.min(aspectRatio, 1 / aspectRatio);
+
+      if (normalizedRatio < maxRatio || normalizedRatio > minRatio) {
+        return {
+          valid: false,
+          reason: `Invalid aspect ratio. Supported range: 4:5 to 9:16 (current: ${videoInfo.width}×${videoInfo.height})`
         };
       }
+          
     } catch (err) {
       console.error("Video validation error:", err);
       return { 
@@ -482,7 +494,7 @@ const confirmPost = async () => {
         const igName = igAccount ? `@${igAccount.username}` : "Instagram Account";
 
         addStep("instagram", igName, "pending");
-        
+
         await postToInstagram({
           file, // use Facebook URL
           content,
