@@ -290,12 +290,12 @@ const confirmPost = async () => {
       }
 
       if (platforms.includes("instagram")) {
-        if (!fbMediaUrl && file) {
-          alert("Instagram requires media — posting to Facebook first");
-          return;
-        }
+      if (!file) {
+        alert("Instagram requires an image or video");
+        return;
+      }        
         await postToInstagram({
-          mediaUrl: fbMediaUrl, // use Facebook URL
+          file, // use Facebook URL
           content,
           igId: selectedIg,
           igAccounts,

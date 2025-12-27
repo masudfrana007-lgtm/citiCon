@@ -1,5 +1,4 @@
 export async function postToInstagram({
-  mediaUrl,
   file,
   content,
   igId,
@@ -14,8 +13,8 @@ export async function postToInstagram({
 
   try {
     const form = new FormData();
-    form.append("file", file);
-    form.append("caption", content || "");
+    form.append("file", file);        // ✅ REQUIRED
+    form.append("caption", content);
     form.append("igId", igId);
 
     const res = await fetch("/auth/instagram/media", {
@@ -26,13 +25,18 @@ export async function postToInstagram({
 
     const data = await res.json();
 
-    if (data.error || !data.id) {
-      throw new Error(data.error || "Instagram post failed");
+    if (!res.ok || data.error) {
+      throw new Error(data.message || "Instagram post failed");
     }
 
     addStep("instagram", name, "success");
-    setPostSummary(prev => [...prev, { platform: "Instagram", target: name }]);
+    setPostSummary(prev => [
+      ...prev,
+      { platform: "Instagram", target: name }
+    ]);
+
   } catch (err) {
+    console.error(err);
     addStep("instagram", name, "error");
     throw err;
   }
