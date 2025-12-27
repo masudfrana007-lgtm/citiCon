@@ -124,182 +124,70 @@ export async function postToInstagram({
     console.groupEnd();
     
     const startTime = Date.now();
-    const res = await fetch("/auth/instagram/media", {
-      method: "POST",
-      body: form,
-      credentials: "include"
+const res = await fetch("/auth/instagram/media", {
+  method: "POST",
+  body: form,
+  credentials: "include"
+});
+
+if (!res.body) {
+  throw new Error("Streaming not supported by browser");
+}
+
+const reader = res.body.getReader();
+const decoder = new TextDecoder("utf-8");
+let buffer = "";
+
+// ✅ must be outside loop
+let published = false;
+
+while (true) {
+  const { value, done } = await reader.read();
+  if (done) break;
+
+  buffer += decoder.decode(value, { stream: true });
+
+  const parts = buffer.split("\n\n");
+  buffer = parts.pop() || "";
+
+  for (const part of parts) {
+    if (!part.startsWith("data:")) continue;
+
+    const json = part.slice(5).trim(); // remove "data:"
+    const msg = JSON.parse(json);
+
+    // Show each step in UI
+    addStep("instagram", name, {
+      step: msg.step,
+      status: msg.status,
+      error: msg.error || null
     });
-    const uploadTime = Date.now() - startTime;
-    
-    const data = await res.json();
-    
-    // ========================================
-    // 📥 BACKEND RESPONSE ANALYSIS
-    // ========================================
-    console.group("📥 BACKEND RESPONSE");
-    console.log("Upload Time:", `${uploadTime}ms`);
-    console.log("Status Code:", res.status);
-    console.log("Status Text:", res.statusText);
-    console.log("Success:", data.success);
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    
-    if (data.steps) {
-      console.log("📊 PROCESSING STEPS:");
-      
-      // Token step
-      if (data.steps.token) {
-        console.log("  1️⃣ Token:", data.steps.token.success ? "✅" : "❌");
-        if (!data.steps.token.success) {
-          console.error("     Error:", data.steps.token.error);
-        }
-      }
-      
-      // File step
-      if (data.steps.file) {
-        console.log("  2️⃣ File Upload:", data.steps.file.success ? "✅" : "❌");
-        if (data.steps.file.success) {
-          console.log("     • Filename:", data.steps.file.filename);
-          console.log("     • URL:", data.steps.file.url);
-          console.log("     • Type:", data.steps.file.type);
-          console.log("     • Size:", data.steps.file.size ? `${(data.steps.file.size / 1024).toFixed(2)} KB` : "N/A");
-        } else {
-          console.error("     Error:", data.steps.file.error);
-        }
-      }
-      
-      // URL Test step
-      if (data.steps.urlTest) {
-        console.log("  3️⃣ URL Accessibility:", data.steps.urlTest.success ? "✅" : "❌");
-        console.log("     • URL:", data.steps.urlTest.url);
-        console.log("     • Status Code:", data.steps.urlTest.statusCode);
-        console.log("     • Message:", data.steps.urlTest.message);
-        if (!data.steps.urlTest.success) {
-          console.error("     ⚠️ Instagram cannot fetch from this URL!");
-          console.error("     Error:", data.steps.urlTest.error);
-        }
-      }
-      
-      // Container step
-      if (data.steps.container) {
-        console.log("  4️⃣ Instagram Container:", data.steps.container.success ? "✅" : "❌");
-        if (data.steps.container.success) {
-          console.log("     • Creation ID:", data.steps.container.creationId);
-        } else {
-          console.error("     Error Response:", data.steps.container.response);
-          if (data.steps.container.response?.error) {
-            console.error("     • Error Code:", data.steps.container.response.error.code);
-            console.error("     • Error Message:", data.steps.container.response.error.message);
-            console.error("     • Error Type:", data.steps.container.response.error.type);
-            if (data.steps.container.response.error.error_user_msg) {
-              console.error("     • User Message:", data.steps.container.response.error.error_user_msg);
-            }
-          }
-        }
-      }
-      
-      // Processing steps
-      if (data.steps.processing && data.steps.processing.length > 0) {
-        console.log("  5️⃣ Instagram Processing:", "⏳");
-        data.steps.processing.forEach((proc, i) => {
-          console.log(`     [${i + 1}] ${proc.time}:`, proc.status);
-          if (proc.error) console.error("       Error:", proc.error);
-        });
-      }
-      
-      // Publish step
-      if (data.steps.publish) {
-        console.log("  6️⃣ Instagram Publish:", data.steps.publish.success ? "✅" : "❌");
-        if (data.steps.publish.success) {
-          console.log("     • Media ID:", data.steps.publish.mediaId);
-          console.log("     🎉 Successfully posted to Instagram!");
-        } else {
-          console.error("     Error Response:", data.steps.publish.response);
-        }
-      }
-      
-      // Cleanup step
-      if (data.steps.cleanup) {
-        console.log("  7️⃣ Cleanup:", data.steps.cleanup.success ? "✅" : "❌");
-        if (data.steps.cleanup.note) {
-          console.log("     Note:", data.steps.cleanup.note);
-        }
-      }
+
+    // Publish success
+    if (msg.step === "publish" && msg.status === "success") {
+      published = true;
+      setPostSummary(prev => [...prev, { platform: "Instagram", target: name }]);
     }
-    
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    
-    if (data.error) {
-      console.error("❌ ERROR:", data.error);
+
+    // Hard fail from server
+    if (msg.step === "fatal") {
+      throw new Error(msg.error || "Instagram fatal error");
     }
-    
-    console.groupEnd();
-    
-    // ========================================
-    // ✅ SUCCESS OR ERROR HANDLING
-    // ========================================
-    if (!res.ok || !data.success) {
-      throw new Error(data.error || "Instagram post failed");
+
+    // Step error
+    if (msg.status === "error") {
+      throw new Error(msg.error || "Instagram failed");
     }
-    
-    addStep("instagram", name, "success");
-    setPostSummary(prev => [
-      ...prev,
-      { platform: "Instagram", target: name }
-    ]);
-    
-  } catch (err) {
-    console.group("❌ INSTAGRAM POST ERROR");
-    console.error("Error Message:", err.message);
-    console.error("Error Stack:", err.stack);
-    console.groupEnd();
-    
-    addStep("instagram", name, "error");
-    throw err;
+
+    // Done
+    if (msg.step === "done") {
+      // wait for stream to finish
+    }
   }
 }
 
-// Helper function to get image dimensions
-const getImageDimensions = (file) => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve({ width: img.width, height: img.height });
-    };
-    
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Failed to load image"));
-    };
-    
-    img.src = url;
-  });
-};
+if (!published) {
+  throw new Error("Instagram post failed (not published)");
+}
 
-// Helper function to get video info
-const getVideoInfo = (file) => {
-  return new Promise((resolve, reject) => {
-    const video = document.createElement('video');
-    const url = URL.createObjectURL(file);
-    
-    video.preload = 'metadata';
-    
-    video.onloadedmetadata = () => {
-      URL.revokeObjectURL(url);
-      resolve({
-        duration: video.duration,
-        width: video.videoWidth,
-        height: video.videoHeight
-      });
-    };
-    
-    video.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Failed to load video"));
-    };
-    
-    video.src = url;
-  });
-};
+addStep("instagram", name, "success");
