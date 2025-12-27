@@ -57,7 +57,7 @@ export async function postToInstagram({
         const msg = JSON.parse(event.slice(5).trim());
 
         // Always reflect backend state
-        addStep("instagram", name, {
+        addStep("instagram", igName, {
           step: msg.step,
           status: msg.status || "pending",
           error: msg.error || null
@@ -68,7 +68,7 @@ export async function postToInstagram({
           published = true;
           setPostSummary(prev => [
             ...prev,
-            { platform: "Instagram", target: name }
+            { platform: "Instagram", target: igName }
           ]);
         }
 
@@ -91,12 +91,12 @@ export async function postToInstagram({
       throw new Error("Instagram post was not published");
     }
 
-    addStep("instagram", name, "success");
+    addStep("instagram", igName, "success");
 
   } catch (err) {
     console.error("Instagram error:", err.message);
 
-    addStep("instagram", name, {
+    addStep("instagram", igName, {
       step: "fatal",
       status: "error",
       error: err.message
