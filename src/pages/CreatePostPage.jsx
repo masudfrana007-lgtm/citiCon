@@ -31,6 +31,8 @@ const CreatePostPage = () => {
   const [igConnected, setIgConnected] = useState(false);
   const [igAccounts, setIgAccounts] = useState([]);
   const [selectedIg, setSelectedIg] = useState('');
+  const [igValidation, setIgValidation] = useState({ valid: true, reason: "" });
+  const [isValidating, setIsValidating] = useState(false);
 
   const [ytConnected, setYtConnected] = useState(false);
   const [ytChannels, setYtChannels] = useState([]);
@@ -131,7 +133,26 @@ useEffect(() => {
   }
 }, [liConnected]);
 
-
+  // ADD: Re-validate when file changes or Instagram is toggled
+  useEffect(() => {
+    const validateFile = async () => {
+      if (file && platforms.includes('instagram')) {
+        setIsValidating(true);
+        const validation = await validateInstagramMedia(file);
+        setIgValidation(validation);
+        setIsValidating(false);
+        
+        // If invalid, remove Instagram from platforms
+        if (!validation.valid) {
+          setPlatforms(prev => prev.filter(p => p !== 'instagram'));
+        }
+      } else {
+        setIgValidation({ valid: true, reason: "" });
+      }
+    };
+    
+    validateFile();
+  }, [file]);
 
   // Load platform connections
   useEffect(() => {
@@ -196,20 +217,48 @@ useEffect(() => {
     loadConnections();
   }, []);
 
-  const handleFileDrop = (e) => {
+  const handleFileDrop = async (e) => {
     e.preventDefault();
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile && droppedFile.size <= 50 * 1024 * 1024) {
       setFile(droppedFile);
       setPreview(URL.createObjectURL(droppedFile));
+
+      // Validate for Instagram if Instagram is selected
+      if (platforms.includes('instagram')) {
+        setIsValidating(true);
+        const validation = await validateInstagramMedia(droppedFile);
+        setIgValidation(validation);
+        setIsValidating(false);
+        
+        // If invalid, remove Instagram from platforms
+        if (!validation.valid) {
+          setPlatforms(prev => prev.filter(p => p !== 'instagram'));
+        }
+      }
+
     }
   };
 
-  const handleFileSelect = (e) => {
+  const handleFileSelect = async (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile && selectedFile.size <= 50 * 1024 * 1024) {
       setFile(selectedFile);
       setPreview(URL.createObjectURL(selectedFile));
+
+      // Validate for Instagram if Instagram is selected
+      if (platforms.includes('instagram')) {
+        setIsValidating(true);
+        const validation = await validateInstagramMedia(selectedFile);
+        setIgValidation(validation);
+        setIsValidating(false);
+        
+        // If invalid, remove Instagram from platforms
+        if (!validation.valid) {
+          setPlatforms(prev => prev.filter(p => p !== 'instagram'));
+        }
+      }
+
     }
   };
 
@@ -267,6 +316,145 @@ const addStep = (platform, name, status) => {
   });
 };
 
+const validateInstagramMedia = async (file) => {
+  if (!file) return { valid: false, reason: "No file selected" };
+
+  const isVideo = file.type.startsWith('video/');
+  const isImage = file.type.startsWith('image/');
+
+  // Check file type
+  if (!isVideo && !isImage) {
+    return { valid: false, reason: "Instagram only accepts images and videos" };
+  }
+
+  // Check file size (100MB for videos, 8MB for images)
+  const maxSize = isVideo ? 100 * 1024 * 1024 : 8 * 1024 * 1024;
+  if (file.size > maxSize) {
+    return { 
+      valid: false, 
+      reason: `File too large. Max ${isVideo ? '100MB' : '8MB'} for ${isVideo ? 'videos' : 'images'}` 
+    };
+  }
+
+  // For images, check dimensions
+  if (isImage) {
+    try {
+      const dimensions = await getImageDimensions(file);
+      const aspectRatio = dimensions.width / dimensions.height;
+      
+      // Instagram aspect ratio: 4:5 to 1.91:1
+      if (aspectRatio < 0.8 || aspectRatio > 1.91) {
+        return { 
+          valid: false, 
+          reason: `Image aspect ratio must be between 4:5 and 1.91:1 (current: ${aspectRatio.toFixed(2)}:1)` 
+        };
+      }
+
+      // Min resolution: 320px
+      if (dimensions.width < 320 || dimensions.height < 320) {
+        return { 
+          valid: false, 
+          reason: `Image too small. Minimum 320x320px (current: ${dimensions.width}x${dimensions.height})` 
+        };
+      }
+    } catch (err) {
+      console.error("Image validation error:", err);
+    }
+  }
+
+  // For videos, check duration and dimensions
+  if (isVideo) {
+    try {
+      const videoInfo = await getVideoInfo(file);
+      
+      // Check duration (3-90 seconds for Reels)
+      if (videoInfo.duration < 3) {
+        return { 
+          valid: false, 
+          reason: `Video too short. Minimum 3 seconds (current: ${videoInfo.duration.toFixed(1)}s)` 
+        };
+      }
+      
+      if (videoInfo.duration > 90) {
+        return { 
+          valid: false, 
+          reason: `Video too long. Maximum 90 seconds (current: ${videoInfo.duration.toFixed(1)}s)` 
+        };
+      }
+
+      // Check resolution (minimum 540x960)
+      if (videoInfo.width < 540 || videoInfo.height < 960) {
+        return { 
+          valid: false, 
+          reason: `Video resolution too low. Minimum 540x960px (current: ${videoInfo.width}x${videoInfo.height})` 
+        };
+      }
+
+      // Check aspect ratio (9:16 is ideal, but 4:5 to 9:16 works)
+      const aspectRatio = videoInfo.width / videoInfo.height;
+      if (aspectRatio < 0.8 || aspectRatio > 1) {
+        return { 
+          valid: false, 
+          reason: `Video aspect ratio should be between 4:5 and 9:16 (current: ${aspectRatio.toFixed(2)}:1). Vertical videos work best.` 
+        };
+      }
+    } catch (err) {
+      console.error("Video validation error:", err);
+      return { 
+        valid: false, 
+        reason: "Unable to validate video properties. Please try a different file." 
+      };
+    }
+  }
+
+  return { valid: true, reason: "" };
+};
+
+// Helper function to get image dimensions
+const getImageDimensions = (file) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve({ width: img.width, height: img.height });
+    };
+    
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Failed to load image"));
+    };
+    
+    img.src = url;
+  });
+};
+
+// Helper function to get video info
+const getVideoInfo = (file) => {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    const url = URL.createObjectURL(file);
+    
+    video.preload = 'metadata';
+    
+    video.onloadedmetadata = () => {
+      URL.revokeObjectURL(url);
+      resolve({
+        duration: video.duration,
+        width: video.videoWidth,
+        height: video.videoHeight
+      });
+    };
+    
+    video.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Failed to load video"));
+    };
+    
+    video.src = url;
+  });
+};
 
 const confirmPost = async () => {
   setShowConfirm(false);
@@ -391,31 +579,52 @@ const confirmPost = async () => {
             </MapContainer>
           </div>
         </div>
+        
+{/* Media Upload */}
+<div className="media-section">
+  <h3>Media (Image/Video)</h3>
+  <div
+    className="drop-zone"
+    onDrop={handleFileDrop}
+    onDragOver={e => e.preventDefault()}
+    onClick={() => document.getElementById('file-input').click()}
+  >
+    {preview ? (
+      isVideo ? (
+        <video src={preview} controls className="media-preview" />
+      ) : (
+        <img src={preview} alt="Preview" className="media-preview" />
+      )
+    ) : (
+      <>
+        <p>Click to upload or drag and drop</p>
+        <p>PNG, JPG or MP4 (MAX. 50MB)</p>
+      </>
+    )}
+    <input id="file-input" type="file" accept="image/*,video/*" onChange={handleFileSelect} hidden />
+  </div>
 
-        {/* Media Upload */}
-        <div className="media-section">
-          <h3>Media (Image/Video)</h3>
-          <div
-            className="drop-zone"
-            onDrop={handleFileDrop}
-            onDragOver={e => e.preventDefault()}
-            onClick={() => document.getElementById('file-input').click()}
-          >
-            {preview ? (
-              isVideo ? (
-                <video src={preview} controls className="media-preview" />
-              ) : (
-                <img src={preview} alt="Preview" className="media-preview" />
-              )
-            ) : (
-              <>
-                <p>Click to upload or drag and drop</p>
-                <p>PNG, JPG or MP4 (MAX. 50MB)</p>
-              </>
-            )}
-            <input id="file-input" type="file" accept="image/*,video/*" onChange={handleFileSelect} hidden />
-          </div>
-        </div>
+  {/* Instagram Validation Warning */}
+  {file && !igValidation.valid && (
+    <div className="validation-warning" style={{
+      marginTop: '10px',
+      padding: '12px',
+      backgroundColor: '#fff3cd',
+      border: '1px solid #ffc107',
+      borderRadius: '8px',
+      color: '#856404'
+    }}>
+      <strong>⚠️ Instagram Requirements Not Met:</strong>
+      <p style={{ margin: '5px 0 0 0' }}>{igValidation.reason}</p>
+    </div>
+  )}
+
+  {isValidating && (
+    <p style={{ marginTop: '10px', color: '#666' }}>
+      ⏳ Validating media for Instagram...
+    </p>
+  )}
+</div>
 
         {/* Platform Selection */}
         <div className="publish-section">
@@ -431,14 +640,50 @@ const confirmPost = async () => {
               <span>Facebook {fbConnected ? '✓' : '(Connect in Settings)'}</span>
             </label>
 
-            <label>
+            <label style={{
+              opacity: !igConnected || !file || !platforms.includes('facebook') || !igValidation.valid ? 0.5 : 1
+            }}>
               <input
                 type="checkbox"
                 checked={platforms.includes('instagram')}
-                onChange={e => setPlatforms(e.target.checked ? [...platforms, 'instagram'] : platforms.filter(p => p !== 'instagram'))}
-                disabled={!igConnected || !file || !platforms.includes('facebook')}
+                onChange={async (e) => {
+                  const checked = e.target.checked;
+                  
+                  if (checked && file) {
+                    // Validate before allowing selection
+                    setIsValidating(true);
+                    const validation = await validateInstagramMedia(file);
+                    setIgValidation(validation);
+                    setIsValidating(false);
+                    
+                    if (!validation.valid) {
+                      alert(`Instagram validation failed:\n${validation.reason}`);
+                      return;
+                    }
+                  }
+                  
+                  setPlatforms(
+                    checked 
+                      ? [...platforms, 'instagram'] 
+                      : platforms.filter(p => p !== 'instagram')
+                  );
+                }}
+                disabled={
+                  !igConnected || 
+                  !file || 
+                  !platforms.includes('facebook') || 
+                  !igValidation.valid ||
+                  isValidating
+                }
               />
-              <span>Instagram {igConnected && file && platforms.includes('facebook') ? '✓' : '(Requires Facebook + Media)'}</span>
+              <span>
+                Instagram{' '}
+                {!igConnected && '(Connect in Settings)'}
+                {igConnected && !file && '(Requires Media)'}
+                {igConnected && file && !platforms.includes('facebook') && '(Requires Facebook)'}
+                {igConnected && file && platforms.includes('facebook') && igValidation.valid && '✓'}
+                {igConnected && file && platforms.includes('facebook') && !igValidation.valid && '(Media Invalid)'}
+              </span>
             </label>
 
             <label>
@@ -516,6 +761,28 @@ const confirmPost = async () => {
                   <option key={a.ig_id} value={a.ig_id}>@{a.username}</option>
                 ))}
               </select>
+            </div>
+          )}
+
+          {file && !igValidation.valid && (
+            <div style={{
+              marginTop: '15px',
+              padding: '15px',
+              backgroundColor: '#f8f9fa',
+              borderRadius: '8px',
+              border: '1px solid #dee2e6'
+            }}>
+              <h4 style={{ margin: '0 0 10px 0', color: '#495057' }}>
+                📋 Instagram Media Requirements:
+              </h4>
+              <ul style={{ margin: 0, paddingLeft: '20px', color: '#6c757d' }}>
+                <li>Videos: 3-90 seconds duration</li>
+                <li>Videos: Minimum 540x960px resolution</li>
+                <li>Videos: Vertical aspect ratio (4:5 to 9:16)</li>
+                <li>Images: Minimum 320x320px resolution</li>
+                <li>Images: Aspect ratio between 4:5 and 1.91:1</li>
+                <li>Max file size: 100MB (video) / 8MB (image)</li>
+              </ul>
             </div>
           )}
 
