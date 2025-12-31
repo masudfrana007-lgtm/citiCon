@@ -491,6 +491,15 @@ const confirmPost = async () => {
       body: form,
       credentials: "include",
     });
+
+    if (!uploadRes.ok) {
+      const text = await uploadRes.text();  // Get raw response
+      console.error("Upload failed:", uploadRes.status, text);
+      alert(`Upload failed: ${uploadRes.status} ${uploadRes.statusText}\nCheck console for details`);
+      setIsPosting(false);
+      return;  // Stop everything
+    }
+
     const uploadData = await uploadRes.json();
     mediaUrl = uploadData.mediaUrl;
     mediaType = file.type.startsWith("video/") ? "video" : "image";
@@ -590,7 +599,7 @@ const confirmPost = async () => {
             await updateStatus("facebook", pageName, "error", {
                     errorMessage: err.message || "Failed to post",
                   });
-                  
+
             addStep("facebook", pageName, "error");
             console.error(`Failed to post to Facebook page ${pageName}:`, err);
             // Continue to next page even if one fails
