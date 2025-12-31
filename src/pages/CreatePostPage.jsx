@@ -533,7 +533,7 @@ const confirmPost = async () => {
       division,
       district,
       upazila,
-      union_ward,
+      union,
       platforms: platformsForDB,
     }),
   });
@@ -569,14 +569,14 @@ const confirmPost = async () => {
           addStep("facebook", pageName, "pending");
 
           try {
-            await postToFacebook({
-              file,
-              content,
-              pageId,
-              fbPages, // still passed for lookup if needed
-              addStep, // we use it inside to update this page's status
-              setPostSummary
-            });
+            const result = await postToFacebook({
+                    file,
+                    content,
+                    pageId,
+                    fbPages,
+                    addStep,
+                    setPostSummary
+                  });
 
             await updateStatus("facebook", pageName, "success", {
                   externalPostId: result.postId,
@@ -587,6 +587,10 @@ const confirmPost = async () => {
             addStep("facebook", pageName, "success");
             setPostSummary(prev => [...prev, { platform: "Facebook", target: pageName }]);
           } catch (err) {
+            await updateStatus("facebook", pageName, "error", {
+                    errorMessage: err.message || "Failed to post",
+                  });
+                  
             addStep("facebook", pageName, "error");
             console.error(`Failed to post to Facebook page ${pageName}:`, err);
             // Continue to next page even if one fails
