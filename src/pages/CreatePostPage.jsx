@@ -476,7 +476,86 @@ const confirmPost = async () => {
   setShowConfirm(false);
   setIsPosting(true);
   setPostSteps([]);
-  let fbMediaUrl = null;
+  let mediaUrl = null;
+  let mediaType = null;
+
+  // 1. First: Upload file and get permanent URL
+  if (file) {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("caption", content);
+    form.append("platforms", JSON.stringify(platforms));
+
+    const uploadRes = await fetch("/post", {
+      method: "POST",
+      body: form,
+      credentials: "include",
+    });
+    const uploadData = await uploadRes.json();
+    mediaUrl = uploadData.mediaUrl;
+    mediaType = file.type.startsWith("video/") ? "video" : "image";
+  }
+
+  // 2. Build platforms list for DB
+  const platformsForDB = [];
+
+  if (platforms.includes("facebook")) {
+    selectedFbPages.forEach(pageId => {
+      const page = fbPages.find(p => p.page_id === pageId);
+      platformsForDB.push({
+        platform: "facebook",
+        targetId: pageId,
+        targetName: page?.page_name,
+      });
+    });
+  }
+  if (platforms.includes("instagram") && selectedIg) {
+    const ig = igAccounts.find(a => a.ig_id === selectedIg);
+    platformsForDB.push({
+      platform: "instagram",
+      targetId: selectedIg,
+      targetName: `@${ig?.username}`,
+    });
+  }
+  // Add YouTube, LinkedIn, X similarly...
+
+  // 3. Save main post record
+  const saveRes = await fetch("/post/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      title,
+      content,
+      mediaUrl,
+      mediaType,
+      originalFilename: file?.name,
+      division,
+      district,
+      upazila,
+      union_ward,
+      platforms: platformsForDB,
+    }),
+  });
+  const { postId } = await saveRes.json();
+
+  // Helper to update status
+  const updateStatus = async (platform, targetName, status, extra = {}) => {
+    await fetch("/post/platform/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        postId,
+        platform,
+        targetName,
+        status,
+        externalPostId: extra.externalPostId,
+        permalink: extra.permalink,
+        errorMessage: extra.errorMessage,
+      }),
+    });
+  };
 
   try {
       if (platforms.includes("facebook")) {
@@ -498,6 +577,11 @@ const confirmPost = async () => {
               addStep, // we use it inside to update this page's status
               setPostSummary
             });
+
+            await updateStatus("facebook", pageName, "success", {
+                  externalPostId: result.postId,
+                  permalink: result.permalink,
+                });
 
             // Update to success for this page
             addStep("facebook", pageName, "success");
