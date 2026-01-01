@@ -1,6 +1,6 @@
 // src/pages/AdsPage.jsx
 import React, { useState, useEffect } from 'react';
-import './AdsPage.css'; // You can create this for better styling
+import './AdsPage.css';
 
 const AdsPage = () => {
   const [posts, setPosts] = useState([]);
@@ -73,18 +73,18 @@ const AdsPage = () => {
               {post.media_url && (
                 <div className="media-preview">
                   {post.media_type === "video" ? (
-                    <video 
-                      src={post.media_url} 
-                      controls 
+                    <video
+                      src={post.media_url}
+                      controls
                       preload="metadata"
                       style={{ width: "100%", borderRadius: "8px" }}
                     >
                       Your browser does not support the video tag.
                     </video>
                   ) : (
-                    <img 
-                      src={post.media_url} 
-                      alt="Post media" 
+                    <img
+                      src={post.media_url}
+                      alt="Post media"
                       style={{ width: "100%", borderRadius: "8px" }}
                     />
                   )}
@@ -103,8 +103,8 @@ const AdsPage = () => {
                 {post.platforms && post.platforms.length > 0 ? (
                   <div className="platforms-list">
                     {post.platforms.map(plat => (
-                      <div 
-                        key={plat.id} 
+                      <div
+                        key={plat.id}
                         className={`platform-item ${plat.status}`}
                       >
                         <span className="platform-name">
@@ -118,16 +118,33 @@ const AdsPage = () => {
                           {plat.status === "error" && "❌ Failed"}
                         </span>
 
-                        {plat.permalink && (
-                          <a 
-                            href={plat.permalink} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="view-link"
-                          >
-                            View Post →
-                          </a>
-                        )}
+                        {/* Actions: View + Boost */}
+                        <div className="platform-actions">
+                          {plat.permalink && (
+                            <a
+                              href={plat.permalink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="view-link"
+                            >
+                              View Post →
+                            </a>
+                          )}
+
+                          {/* 🚀 Boost Post Button - Only for successful Facebook posts */}
+                          {plat.platform === "facebook" &&
+                           plat.status === "success" &&
+                           plat.external_post_id && (
+                            <a
+                              href={`https://www.facebook.com/${plat.external_post_id}/boost`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="boost-btn"
+                            >
+                              🚀 Boost Post
+                            </a>
+                          )}
+                        </div>
 
                         {plat.error_message && (
                           <small className="error-msg">
