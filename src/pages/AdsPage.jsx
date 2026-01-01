@@ -9,9 +9,7 @@ const AdsPage = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await fetch("/posts", { 
-          credentials: "include" 
-        });
+        const res = await fetch("/post/posts", { credentials: "include" });
 
         if (res.ok) {
           const data = await res.json();
