@@ -1,0 +1,115 @@
+/* src/pages/AdsPage.css */
+.ads-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.posts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 24px;
+  margin-top: 30px;
+}
+
+.post-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  overflow: hidden;
+  transition: transform 0.2s;
+}
+
+.post-card:hover {
+  transform: translateY(-4px);
+}
+
+.post-header {
+  padding: 16px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #eee;
+}
+
+.post-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.3em;
+  color: #1a1a1a;
+}
+
+.post-date {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.media-preview {
+  background: #000;
+}
+
+.post-content {
+  padding: 16px;
+  font-size: 0.95em;
+}
+
+.platforms-section {
+  padding: 16px;
+  background: #f8f9fa;
+  border-top: 1px solid #eee;
+}
+
+.platforms-list {
+  margin-top: 10px;
+}
+
+.platform-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px dashed #ddd;
+}
+
+.platform-item:last-child {
+  border-bottom: none;
+}
+
+.platform-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.platform-status {
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+.success { color: #28a745; }
+.pending { color: #ffc107; }
+.error { color: #dc3545; }
+
+.view-link {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 0.9em;
+  margin-left: 10px;
+}
+
+.view-link:hover {
+  text-decoration: underline;
+}
+
+.error-msg {
+  color: #dc3545;
+  font-style: italic;
+  margin-left: 10px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.empty-state h3 {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+}
