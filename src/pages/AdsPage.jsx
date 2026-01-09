@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./AdsPage.css";
 
 /* -------------------------------
-   MEDIA PRIORITY LOGIC
+   MEDIA PRIORITY
 -------------------------------- */
 
 const IMAGE_PRIORITY = ["facebook", "instagram", "linkedin", "twitter"];
@@ -11,9 +11,8 @@ const VIDEO_PRIORITY = ["youtube", "facebook", "instagram", "linkedin", "twitter
 const getMediaCandidates = (post) => {
   if (!post.platforms) return [];
 
-  const priority = post.media_type === "video"
-    ? VIDEO_PRIORITY
-    : IMAGE_PRIORITY;
+  const priority =
+    post.media_type === "video" ? VIDEO_PRIORITY : IMAGE_PRIORITY;
 
   return priority
     .map(name =>
@@ -28,12 +27,13 @@ const getMediaCandidates = (post) => {
 };
 
 /* -------------------------------
-   PLATFORM MEDIA RENDERER
+   PLATFORM MEDIA
 -------------------------------- */
 
 const PlatformMedia = ({ post }) => {
   const candidates = getMediaCandidates(post);
   const [index, setIndex] = useState(0);
+  const videoRef = useRef(null);
 
   if (!candidates.length) {
     return <div className="media-fallback">No media</div>;
@@ -47,9 +47,15 @@ const PlatformMedia = ({ post }) => {
     }
   };
 
-  // VIDEO
+  const goFullscreen = () => {
+    if (videoRef.current?.requestFullscreen) {
+      videoRef.current.requestFullscreen();
+    }
+  };
+
+  /* -------- VIDEO -------- */
   if (post.media_type === "video") {
-    // YouTube embed
+    // YouTube (native fullscreen supported)
     if (current.platform === "youtube") {
       return (
         <iframe
@@ -57,24 +63,33 @@ const PlatformMedia = ({ post }) => {
           title="YouTube video"
           allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
-          onError={tryNext}
         />
       );
     }
 
-    // Other platforms (FB / IG / LinkedIn / Twitter)
+    // Facebook / IG / LinkedIn / Twitter (best effort)
     return (
-      <video
-        src={current.media_url}
-        controls
-        muted
-        preload="metadata"
-        onError={tryNext}
-      />
+      <div className="video-wrapper">
+        <video
+          ref={videoRef}
+          src={current.media_url}
+          controls
+          muted
+          preload="metadata"
+          onError={tryNext}
+        />
+        <button
+          className="fullscreen-btn"
+          onClick={goFullscreen}
+          title="Fullscreen"
+        >
+          ⛶
+        </button>
+      </div>
     );
   }
 
-  // IMAGE
+  /* -------- IMAGE -------- */
   return (
     <img
       src={current.media_url}
@@ -114,12 +129,12 @@ const AdsPage = () => {
       {posts.map(post => (
         <div key={post.id} className="meta-card">
 
-          {/* LEFT: MEDIA (FROM PLATFORMS) */}
+          {/* LEFT: MEDIA */}
           <div className="meta-media">
             <PlatformMedia post={post} />
           </div>
 
-          {/* CENTER: CONTENT */}
+          {/* CENTER */}
           <div className="meta-content">
             <h3 className="meta-title">
               {post.title || "Untitled post"}
@@ -134,14 +149,10 @@ const AdsPage = () => {
               </span>
             </div>
 
-            {/* PLATFORMS */}
             <div className="meta-platforms">
               {post.platforms.map(p => (
                 <div key={p.id} className={`platform-badge ${p.status}`}>
-                  <span>
-                    {p.platform.toUpperCase()}
-                    {p.target_name && ` · ${p.target_name}`}
-                  </span>
+                  <span>{p.platform.toUpperCase()}</span>
 
                   {p.status === "success" && p.permalink && (
                     <a href={p.permalink} target="_blank" rel="noreferrer">
@@ -162,9 +173,8 @@ const AdsPage = () => {
             </div>
           </div>
 
-          {/* RIGHT: METRICS + ACTIONS */}
+          {/* RIGHT */}
           <div className="meta-side">
-
             <div className="meta-metrics">
               <div><strong>{post.reach || 0}</strong><span>Reach</span></div>
               <div><strong>{post.views || 0}</strong><span>Views</span></div>
@@ -190,8 +200,8 @@ const AdsPage = () => {
                 </a>
               )}
             </div>
-
           </div>
+
         </div>
       ))}
     </div>
