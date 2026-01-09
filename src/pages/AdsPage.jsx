@@ -46,6 +46,7 @@ const MediaRenderer = ({ post }) => {
     }
   };
 
+  // VIDEO THUMBNAIL
   if (post.media_type === "video") {
     if (current.platform === "youtube") {
       return (
@@ -67,10 +68,13 @@ const MediaRenderer = ({ post }) => {
     );
   }
 
+  // IMAGE THUMBNAIL (FIXED)
   return (
     <img
       src={current.media_url || current.thumbnail_url}
       alt="Post media"
+      referrerPolicy="no-referrer"
+      crossOrigin="anonymous"
       onError={tryNext}
     />
   );
@@ -233,10 +237,10 @@ const AdsPage = () => {
                 <img
                   src={media.media_url || media.thumbnail_url}
                   alt="Full view"
+                  referrerPolicy="no-referrer"
+                  crossOrigin="anonymous"
                 />
               );
-
-              
             })()}
           </div>
         </div>
