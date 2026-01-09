@@ -536,7 +536,7 @@ const confirmPost = async () => {
     });
   }
 
-  // Add YouTube, LinkedIn, X similarly...
+  // Add LinkedIn, X similarly...
 
   // 3. Save main post record
   const saveRes = await fetch("/post/save", {
@@ -653,6 +653,7 @@ if (platforms.includes("youtube")) {
       setPostSummary
     });
 
+    // ✅ DB UPDATE (THIS WAS MISSING / FAILING)
     await updateStatus("youtube", channelName, "success", {
       externalPostId: result.videoId,
       permalink: result.permalink

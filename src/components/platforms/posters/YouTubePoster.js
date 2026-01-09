@@ -26,10 +26,19 @@ export async function postToYouTube({
     });
 
     const data = await res.json();
-    if (data.error) throw new Error(data.error);
+    if (!res.ok || data.error) {
+      throw new Error(data.error || "YouTube upload failed");
+    }
 
     addStep("youtube", name, "success");
     setPostSummary(prev => [...prev, { platform: "YouTube", target: name }]);
+
+    // ✅ IMPORTANT
+    return {
+      videoId: data.videoId,
+      permalink: `https://www.youtube.com/watch?v=${data.videoId}`,
+      channelName: name
+    };
   } catch (err) {
     addStep("youtube", name, "error");
     throw err;
