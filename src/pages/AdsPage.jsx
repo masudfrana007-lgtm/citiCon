@@ -8,6 +8,17 @@ import "./AdsPage.css";
 const VIDEO_PRIORITY = ["youtube", "facebook", "instagram", "linkedin", "twitter"];
 const IMAGE_PRIORITY = ["facebook", "instagram", "linkedin", "twitter"];
 
+/* ---------------------------------
+   PROXY HELPER
+---------------------------------- */
+
+const proxied = (url) =>
+  `/media/proxy?url=${encodeURIComponent(url)}`;
+
+/* ---------------------------------
+   MEDIA CANDIDATES
+---------------------------------- */
+
 const getMediaCandidates = (post) => {
   if (!post.platforms) return [];
 
@@ -20,14 +31,14 @@ const getMediaCandidates = (post) => {
         p =>
           p.platform === name &&
           p.status === "success" &&
-          (p.external_post_id || p.media_url || p.thumbnail_url)
+          (p.media_url || p.thumbnail_url || p.external_post_id)
       )
     )
     .filter(Boolean);
 };
 
 /* ---------------------------------
-   MEDIA RENDERER (THUMBNAIL ONLY)
+   MEDIA RENDERER (THUMBNAIL)
 ---------------------------------- */
 
 const MediaRenderer = ({ post }) => {
@@ -46,8 +57,9 @@ const MediaRenderer = ({ post }) => {
     }
   };
 
-  // VIDEO THUMBNAIL
+  // VIDEO
   if (post.media_type === "video") {
+    // YouTube preview (iframe, no click-through)
     if (current.platform === "youtube") {
       return (
         <iframe
@@ -58,9 +70,10 @@ const MediaRenderer = ({ post }) => {
       );
     }
 
+    // Other platforms → proxy
     return (
       <video
-        src={current.media_url}
+        src={proxied(current.media_url)}
         muted
         preload="metadata"
         onError={tryNext}
@@ -68,13 +81,11 @@ const MediaRenderer = ({ post }) => {
     );
   }
 
-  // IMAGE THUMBNAIL (FIXED)
+  // IMAGE → proxy
   return (
     <img
-      src={current.media_url || current.thumbnail_url}
+      src={proxied(current.media_url || current.thumbnail_url)}
       alt="Post media"
-      referrerPolicy="no-referrer"
-      crossOrigin="anonymous"
       onError={tryNext}
     />
   );
@@ -113,18 +124,24 @@ const AdsPage = () => {
       {posts.map(post => (
         <div key={post.id} className="meta-card">
 
-          {/* LEFT: MEDIA + BUTTON */}
+          {/* LEFT: MEDIA + OPEN BUTTON */}
           <div className="meta-media-wrapper">
             <div className="meta-media">
-              <MediaRenderer post={post} />
+              {post.media_type === "image" ? (
+                <div className="media-fallback">Image</div>
+              ) : (
+                <MediaRenderer post={post} />
+              )}
             </div>
 
-            <button
-              className="open-media-btn"
-              onClick={() => setActivePost(post)}
-            >
-              Open
-            </button>
+            {post.media_type === "video" && (
+              <button
+                className="open-media-btn"
+                onClick={() => setActivePost(post)}
+              >
+                Open
+              </button>
+            )}
           </div>
 
           {/* CENTER */}
@@ -226,21 +243,14 @@ const AdsPage = () => {
 
                 return (
                   <video
-                    src={media.media_url}
+                    src={proxied(media.media_url)}
                     controls
                     autoPlay
                   />
                 );
               }
 
-              return (
-                <img
-                  src={media.media_url || media.thumbnail_url}
-                  alt="Full view"
-                  referrerPolicy="no-referrer"
-                  crossOrigin="anonymous"
-                />
-              );
+              return null;
             })()}
           </div>
         </div>
