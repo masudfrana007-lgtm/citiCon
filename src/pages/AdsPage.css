@@ -135,3 +135,11 @@
   font-weight: 700;
   text-decoration: none;
 }
+
+.meta-media iframe {
+  width: 120px;
+  height: 80px;
+  border-radius: 8px;
+  border: none;
+  background: #000;
+}
