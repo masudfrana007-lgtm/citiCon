@@ -23,6 +23,12 @@ try {
     }
     addStep("twitter", "X Account", "success");
     setPostSummary(p => [...p, { platform: "X", target: "Account" }]);
+
+  return {
+    tweetId: data.data.id,
+    permalink: `https://x.com/i/web/status/${data.data.id}`
+  };
+    
   } catch (err) {
     addStep("twitter", "X Account", "error");
     console.error('Detailed Twitter post error:', err.message, { responseData: data }); // Log more context

@@ -11,6 +11,9 @@ export async function postToInstagram({
   const account = igAccounts.find(a => a.ig_id === igId);
   const igName = account ? `@${account.username}` : "Instagram";
 
+  let publishedMediaId = null;
+  let publishedPermalink = null;
+
   // initial UI state
   addStep("instagram", igName, "pending");
 
@@ -66,6 +69,10 @@ export async function postToInstagram({
         // Publish confirmed
         if (msg.step === "publish" && msg.status === "success") {
           published = true;
+
+          publishedMediaId = msg.media_id;     // 👈 REQUIRED
+          publishedPermalink = msg.permalink;  // 👈 OPTIONAL but recommended
+
           setPostSummary(prev => [
             ...prev,
             { platform: "Instagram", target: igName }
@@ -92,6 +99,11 @@ export async function postToInstagram({
     }
 
     addStep("instagram", igName, "success");
+
+    return {
+      mediaId: publishedMediaId,
+      permalink: publishedPermalink
+    };    
 
   } catch (err) {
     console.error("Instagram error:", err.message);

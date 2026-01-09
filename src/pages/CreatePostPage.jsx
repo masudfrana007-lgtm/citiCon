@@ -626,14 +626,20 @@ const confirmPost = async () => {
 
         addStep("instagram", igName, "pending");
 
-        await postToInstagram({
-          file, // use Facebook URL
-          content,
-          igId: selectedIg,
-          igAccounts,
-          addStep,
-          setPostSummary
-        });
+const result = await postToInstagram({
+  file,
+  content,
+  igId: selectedIg,
+  igAccounts,
+  addStep,
+  setPostSummary
+});
+
+await updateStatus("instagram", igName, "success", {
+  externalPostId: result.mediaId,
+  permalink: result.permalink
+});
+
       }
 
 if (platforms.includes("youtube")) {
@@ -673,15 +679,20 @@ if (platforms.includes("youtube")) {
         content,
         addStep,
         setPostSummary
-      });
+      });      
     }
 
     if (platforms.includes("twitter")) {
-      await postToTwitter({
+      const result = await postToTwitter({
         content,
         addStep,
         setPostSummary
       });
+
+      await updateStatus("twitter", "X Account", "success", {
+        externalPostId: result.tweetId,
+        permalink: result.permalink
+      });      
     }
     
     setPostFinished(true);
