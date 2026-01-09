@@ -1,167 +1,101 @@
 // src/pages/AdsPage.jsx
-import React, { useState, useEffect } from 'react';
-import './AdsPage.css';
+import React, { useEffect, useState } from "react";
+import "./AdsPage.css";
 
 const AdsPage = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const res = await fetch("/post/posts", { credentials: "include" });
-
-        if (res.ok) {
-          const data = await res.json();
-          setPosts(data);
-        } else if (res.status === 401) {
-          alert("Please log in to view your posts.");
-        } else {
-          alert("Failed to load posts.");
-        }
-      } catch (err) {
-        console.error("Error fetching posts:", err);
-        alert("Network error. Check your connection.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPosts();
+    fetch("/post/posts", { credentials: "include" })
+      .then(res => res.json())
+      .then(data => setPosts(data))
+      .finally(() => setLoading(false));
   }, []);
 
-  const formatDate = (dateStr) => {
-    return new Date(dateStr).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   if (loading) {
-    return (
-      <div className="page-content ads-page">
-        <h1>Loading your posts...</h1>
-        <p>Please wait while we fetch your history.</p>
-      </div>
-    );
+    return <div className="ads-page">Loading posts…</div>;
   }
 
   return (
-    <div className="page-content ads-page">
-      <h1>Post History & Ads Management</h1>
+    <div className="ads-page">
+      <h1>Published Posts</h1>
 
-      {posts.length === 0 ? (
-        <div className="empty-state">
-          <h3>No posts yet!</h3>
-          <p>Go to <strong>Create Post</strong> and publish your first content.</p>
-        </div>
-      ) : (
-        <div className="posts-grid">
-          {posts.map(post => (
-            <div key={post.id} className="post-card">
-              <div className="post-header">
-                <h3>{post.title || "Untitled Post"}</h3>
-                <small className="post-date">
-                  Created: {formatDate(post.created_at)}
-                </small>
-              </div>
+      {posts.map(post => (
+        <div key={post.id} className="meta-card">
 
-              {/* Media Preview */}
-              {post.media_url && (
-                <div className="media-preview">
-                  {post.media_type === "video" ? (
-                    <video
-                      src={post.media_url}
-                      controls
-                      preload="metadata"
-                      style={{ width: "100%", borderRadius: "8px" }}
-                    >
-                      Your browser does not support the video tag.
-                    </video>
-                  ) : (
-                    <img
-                      src={post.media_url}
-                      alt="Post media"
-                      style={{ width: "100%", borderRadius: "8px" }}
-                    />
-                  )}
-                </div>
-              )}
+          {/* LEFT: Media */}
+          <div className="meta-media">
+            {post.media_type === "video" ? (
+              <video src={post.media_url} muted />
+            ) : (
+              <img src={post.media_url} alt="" />
+            )}
+          </div>
 
-              {/* Caption */}
-              <div className="post-content">
-                <strong>Caption:</strong>
-                <p>{post.content || "No caption"}</p>
-              </div>
+          {/* CENTER: Content */}
+          <div className="meta-content">
+            <h3 className="meta-title">
+              {post.title || "Untitled post"}
+            </h3>
 
-              {/* Platforms Status */}
-              <div className="platforms-section">
-                <strong>Published to:</strong>
-                {post.platforms && post.platforms.length > 0 ? (
-                  <div className="platforms-list">
-                    {post.platforms.map(plat => (
-                      <div
-                        key={plat.id}
-                        className={`platform-item ${plat.status}`}
-                      >
-                        <span className="platform-name">
-                          {plat.platform.toUpperCase()}
-                          {plat.target_name && ` – ${plat.target_name}`}
-                        </span>
+            <p className="meta-text">
+              {post.content}
+            </p>
 
-                        <span className="platform-status">
-                          {plat.status === "success" && "✅ Success"}
-                          {plat.status === "pending" && "⏳ Pending"}
-                          {plat.status === "error" && "❌ Failed"}
-                        </span>
-
-                        {/* Actions: View + Boost */}
-                        <div className="platform-actions">
-                          {plat.permalink && (
-                            <a
-                              href={plat.permalink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="view-link"
-                            >
-                              View Post →
-                            </a>
-                          )}
-
-                          {/* 🚀 Boost Post Button - Only for successful Facebook posts */}
-                          {plat.platform === "facebook" &&
-                           plat.status === "success" &&
-                           plat.external_post_id && (
-                            <a
-                              href={`https://www.facebook.com/${plat.external_post_id}/boost`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="boost-btn"
-                            >
-                              🚀 Boost Post
-                            </a>
-                          )}
-                        </div>
-
-                        {plat.error_message && (
-                          <small className="error-msg">
-                            ({plat.error_message})
-                          </small>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p>No platforms selected</p>
-                )}
-              </div>
+            <div className="meta-meta">
+              <span>{post.media_type === "video" ? "🎬 Video" : "🖼️ Image"}</span>
+              <span>Published: {new Date(post.created_at).toLocaleDateString()}</span>
             </div>
-          ))}
+
+            {/* Platforms */}
+            <div className="meta-platforms">
+              {post.platforms.map(p => (
+                <div key={p.id} className={`platform-badge ${p.status}`}>
+                  <span>
+                    {p.platform.toUpperCase()}
+                    {p.target_name && ` · ${p.target_name}`}
+                  </span>
+
+                  <a href={p.permalink} target="_blank" rel="noreferrer">
+                    View
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* RIGHT: Metrics + Actions */}
+          <div className="meta-side">
+
+            <div className="meta-metrics">
+              <div><strong>{post.reach || 0}</strong><span>Reach</span></div>
+              <div><strong>{post.views || 0}</strong><span>Views</span></div>
+              <div><strong>{post.viewers || 0}</strong><span>Viewers</span></div>
+              <div><strong>{post.follows || 0}</strong><span>Follows</span></div>
+            </div>
+
+            <div className="meta-actions">
+              <button className="btn-outline">Retry</button>
+              <button className="btn-danger">Delete</button>
+
+              {post.platforms.some(
+                p => p.platform === "facebook" && p.status === "success"
+              ) && (
+                <a
+                  className="btn-primary"
+                  href={`https://www.facebook.com/${post.platforms.find(p => p.platform === "facebook")?.external_post_id}/boost`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Boost
+                </a>
+              )}
+            </div>
+
+          </div>
         </div>
-      )}
+      ))}
     </div>
   );
 };
