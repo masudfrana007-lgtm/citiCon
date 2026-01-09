@@ -20,7 +20,7 @@ const getMediaCandidates = (post) => {
         p =>
           p.platform === name &&
           p.status === "success" &&
-          (p.external_post_id || p.media_url)
+          (p.external_post_id || p.media_url || p.thumbnail_url)
       )
     )
     .filter(Boolean);
@@ -69,7 +69,7 @@ const MediaRenderer = ({ post }) => {
 
   return (
     <img
-      src={current.media_url}
+      src={current.media_url || current.thumbnail_url}
       alt="Post media"
       onError={tryNext}
     />
@@ -229,7 +229,14 @@ const AdsPage = () => {
                 );
               }
 
-              return <img src={media.media_url} alt="Full view" />;
+              return (
+                <img
+                  src={media.media_url || media.thumbnail_url}
+                  alt="Full view"
+                />
+              );
+
+              
             })()}
           </div>
         </div>
