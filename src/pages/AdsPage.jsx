@@ -27,7 +27,7 @@ const getMediaCandidates = (post) => {
 };
 
 /* ---------------------------------
-   MEDIA RENDERER (THUMBNAIL)
+   MEDIA RENDERER (THUMBNAIL ONLY)
 ---------------------------------- */
 
 const MediaRenderer = ({ post }) => {
@@ -109,13 +109,18 @@ const AdsPage = () => {
       {posts.map(post => (
         <div key={post.id} className="meta-card">
 
-          {/* LEFT: MEDIA */}
-          <div
-            className="meta-media"
-            onClick={() => setActivePost(post)}
-            style={{ cursor: "pointer" }}
-          >
-            <MediaRenderer post={post} />
+          {/* LEFT: MEDIA + BUTTON */}
+          <div className="meta-media-wrapper">
+            <div className="meta-media">
+              <MediaRenderer post={post} />
+            </div>
+
+            <button
+              className="open-media-btn"
+              onClick={() => setActivePost(post)}
+            >
+              Open
+            </button>
           </div>
 
           {/* CENTER */}
