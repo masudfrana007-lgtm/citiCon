@@ -1,4 +1,3 @@
-// src/pages/AdsPage.jsx
 import React, { useEffect, useState } from "react";
 import "./AdsPage.css";
 
@@ -12,6 +11,11 @@ const AdsPage = () => {
       .then(data => setPosts(data))
       .finally(() => setLoading(false));
   }, []);
+
+  // Placeholder – backend retry will be added later
+  const retryPlatform = (postId, platform) => {
+    alert(`Retry not implemented yet.\nPost ID: ${postId}\nPlatform: ${platform.platform}`);
+  };
 
   if (loading) {
     return <div className="ads-page">Loading posts…</div>;
@@ -27,9 +31,14 @@ const AdsPage = () => {
           {/* LEFT: Media */}
           <div className="meta-media">
             {post.media_type === "video" ? (
-              <video src={post.media_url} muted />
+              <video
+                src={post.media_url}
+                controls
+                preload="metadata"
+                muted
+              />
             ) : (
-              <img src={post.media_url} alt="" />
+              <img src={post.media_url} alt="Post media" />
             )}
           </div>
 
@@ -45,7 +54,9 @@ const AdsPage = () => {
 
             <div className="meta-meta">
               <span>{post.media_type === "video" ? "🎬 Video" : "🖼️ Image"}</span>
-              <span>Published: {new Date(post.created_at).toLocaleDateString()}</span>
+              <span>
+                Published: {new Date(post.created_at).toLocaleDateString()}
+              </span>
             </div>
 
             {/* Platforms */}
@@ -57,9 +68,26 @@ const AdsPage = () => {
                     {p.target_name && ` · ${p.target_name}`}
                   </span>
 
-                  <a href={p.permalink} target="_blank" rel="noreferrer">
-                    View
-                  </a>
+                  {/* SUCCESS → VIEW */}
+                  {p.status === "success" && p.permalink && (
+                    <a
+                      href={p.permalink}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      View
+                    </a>
+                  )}
+
+                  {/* FAILED → RETRY */}
+                  {p.status === "error" && (
+                    <button
+                      className="retry-btn"
+                      onClick={() => retryPlatform(post.id, p)}
+                    >
+                      Retry
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -76,15 +104,17 @@ const AdsPage = () => {
             </div>
 
             <div className="meta-actions">
-              <button className="btn-outline">Retry</button>
               <button className="btn-danger">Delete</button>
 
+              {/* Boost only if Facebook success */}
               {post.platforms.some(
                 p => p.platform === "facebook" && p.status === "success"
               ) && (
                 <a
                   className="btn-primary"
-                  href={`https://www.facebook.com/${post.platforms.find(p => p.platform === "facebook")?.external_post_id}/boost`}
+                  href={`https://www.facebook.com/${
+                    post.platforms.find(p => p.platform === "facebook")?.external_post_id
+                  }/boost`}
                   target="_blank"
                   rel="noreferrer"
                 >

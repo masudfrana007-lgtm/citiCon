@@ -526,6 +526,16 @@ const confirmPost = async () => {
       targetName: `@${ig?.username}`,
     });
   }
+  if (platforms.includes("youtube") && selectedYt) {
+    const ch = ytChannels.find(c => c.channel_id === selectedYt);
+
+    platformsForDB.push({
+      platform: "youtube",
+      targetId: selectedYt,
+      targetName: ch?.channel_name,
+    });
+  }
+
   // Add YouTube, LinkedIn, X similarly...
 
   // 3. Save main post record
