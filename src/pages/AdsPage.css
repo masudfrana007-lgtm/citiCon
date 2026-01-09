@@ -135,3 +135,26 @@
   font-weight: 700;
   text-decoration: none;
 }
+
+.meta-media iframe,
+.meta-media video,
+.meta-media img {
+  width: 120px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #000;
+  border: none;
+}
+
+.media-fallback {
+  width: 120px;
+  height: 80px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
