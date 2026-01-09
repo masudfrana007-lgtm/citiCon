@@ -27,7 +27,7 @@ const getMediaCandidates = (post) => {
 };
 
 /* ---------------------------------
-   MEDIA RENDERER (WITH FALLBACK)
+   MEDIA RENDERER (THUMBNAIL)
 ---------------------------------- */
 
 const MediaRenderer = ({ post }) => {
@@ -46,34 +46,27 @@ const MediaRenderer = ({ post }) => {
     }
   };
 
-  // ---------- VIDEO ----------
   if (post.media_type === "video") {
-    // YouTube (iframe only – required)
     if (current.platform === "youtube") {
       return (
         <iframe
-          src={`https://www.youtube.com/embed/${current.external_post_id}?controls=1&modestbranding=1&rel=0&showinfo=0&fs=1&iv_load_policy=3`}
-          title="YouTube video"
-          allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
+          src={`https://www.youtube.com/embed/${current.external_post_id}?controls=0&modestbranding=1&rel=0`}
+          title="Video preview"
           onError={tryNext}
         />
       );
     }
 
-    // Facebook / Instagram / LinkedIn / Twitter (best effort)
     return (
       <video
         src={current.media_url}
-        controls
-        preload="metadata"
         muted
+        preload="metadata"
         onError={tryNext}
       />
     );
   }
 
-  // ---------- IMAGE ----------
   return (
     <img
       src={current.media_url}
@@ -90,6 +83,7 @@ const MediaRenderer = ({ post }) => {
 const AdsPage = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activePost, setActivePost] = useState(null);
 
   useEffect(() => {
     fetch("/post/posts", { credentials: "include" })
@@ -116,22 +110,21 @@ const AdsPage = () => {
         <div key={post.id} className="meta-card">
 
           {/* LEFT: MEDIA */}
-          <div className="meta-media">
+          <div
+            className="meta-media"
+            onClick={() => setActivePost(post)}
+            style={{ cursor: "pointer" }}
+          >
             <MediaRenderer post={post} />
           </div>
 
-          {/* CENTER: CONTENT */}
+          {/* CENTER */}
           <div className="meta-content">
-            <h3 className="meta-title">
-              {post.title || "Untitled post"}
-            </h3>
-
+            <h3 className="meta-title">{post.title || "Untitled post"}</h3>
             <p className="meta-text">{post.content}</p>
 
             <div className="meta-meta">
-              <span>
-                {post.media_type === "video" ? "🎬 Video" : "🖼️ Image"}
-              </span>
+              <span>{post.media_type === "video" ? "🎬 Video" : "🖼️ Image"}</span>
               <span>
                 Published: {new Date(post.created_at).toLocaleDateString()}
               </span>
@@ -193,9 +186,49 @@ const AdsPage = () => {
               )}
             </div>
           </div>
-
         </div>
       ))}
+
+      {/* ================= MODAL ================= */}
+      {activePost && (
+        <div className="media-modal" onClick={() => setActivePost(null)}>
+          <div
+            className="media-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button className="media-close" onClick={() => setActivePost(null)}>
+              ✕
+            </button>
+
+            {(() => {
+              const media = getMediaCandidates(activePost)[0];
+              if (!media) return null;
+
+              if (activePost.media_type === "video") {
+                if (media.platform === "youtube") {
+                  return (
+                    <iframe
+                      src={`https://www.youtube.com/embed/${media.external_post_id}?controls=1&rel=0`}
+                      allow="autoplay; fullscreen; picture-in-picture"
+                      allowFullScreen
+                    />
+                  );
+                }
+
+                return (
+                  <video
+                    src={media.media_url}
+                    controls
+                    autoPlay
+                  />
+                );
+              }
+
+              return <img src={media.media_url} alt="Full view" />;
+            })()}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
