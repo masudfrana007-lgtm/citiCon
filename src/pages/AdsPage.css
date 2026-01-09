@@ -57,16 +57,21 @@
 }
 
 .platforms-list {
-  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .platform-item {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px dashed #ddd;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #ffffff;
+  border-radius: 10px;
+  border-left: 5px solid #ddd;
 }
+
 
 .platform-item:last-child {
   border-bottom: none;
@@ -83,24 +88,49 @@
   margin-left: 10px;
 }
 
-.success { color: #28a745; }
-.pending { color: #ffc107; }
-.error { color: #dc3545; }
+.platform-status {
+  align-self: flex-start;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.platform-item.success .platform-status {
+  background: #e6f4ea;
+  color: #1e7e34;
+}
+
+.platform-item.pending .platform-status {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.platform-item.error .platform-status {
+  background: #f8d7da;
+  color: #842029;
+}
+
 
 .platform-actions {
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
 }
 
 .view-link {
+  background: #e7f0ff;
   color: #1877f2;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
   text-decoration: none;
-  font-weight: 500;
+  transition: background 0.2s;
 }
 
 .view-link:hover {
-  text-decoration: underline;
+  background: #d6e6ff;
 }
 
 .boost-btn {

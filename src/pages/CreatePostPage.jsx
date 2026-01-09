@@ -626,17 +626,36 @@ const confirmPost = async () => {
         });
       }
 
-    if (platforms.includes("youtube")) {
-      await postToYouTube({
-        file,
-        title,
-        content,
-        channelId: selectedYt,
-        ytChannels,
-        addStep,
-        setPostSummary
-      });
-    }
+if (platforms.includes("youtube")) {
+  const ch = ytChannels.find(c => c.channel_id === selectedYt);
+  const channelName = ch?.channel_name || "YouTube Channel";
+
+  addStep("youtube", channelName, "pending");
+
+  try {
+    const result = await postToYouTube({
+      file,
+      title,
+      content,
+      channelId: selectedYt,
+      ytChannels,
+      addStep,
+      setPostSummary
+    });
+
+    await updateStatus("youtube", channelName, "success", {
+      externalPostId: result.videoId,
+      permalink: result.permalink
+    });
+
+  } catch (err) {
+    await updateStatus("youtube", channelName, "error", {
+      errorMessage: err.message
+    });
+
+    addStep("youtube", channelName, "error");
+  }
+}
 
     if (platforms.includes("linkedin")) {
       await postToLinkedIn({
