@@ -52,7 +52,7 @@ const MediaRenderer = ({ post }) => {
     if (current.platform === "youtube") {
       return (
         <iframe
-          src={`https://www.youtube.com/embed/${current.external_post_id}`}
+          src={`https://www.youtube.com/embed/${current.external_post_id}?controls=1&modestbranding=1&rel=0&showinfo=0&fs=1&iv_load_policy=3`}
           title="YouTube video"
           allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
