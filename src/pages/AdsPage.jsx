@@ -1,107 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./AdsPage.css";
-
-/* -------------------------------
-   MEDIA PRIORITY
--------------------------------- */
-
-const IMAGE_PRIORITY = ["facebook", "instagram", "linkedin", "twitter"];
-const VIDEO_PRIORITY = ["youtube", "facebook", "instagram", "linkedin", "twitter"];
-
-const getMediaCandidates = (post) => {
-  if (!post.platforms) return [];
-
-  const priority =
-    post.media_type === "video" ? VIDEO_PRIORITY : IMAGE_PRIORITY;
-
-  return priority
-    .map(name =>
-      post.platforms.find(
-        p =>
-          p.platform === name &&
-          p.status === "success" &&
-          (p.media_url || p.external_post_id)
-      )
-    )
-    .filter(Boolean);
-};
-
-/* -------------------------------
-   PLATFORM MEDIA
--------------------------------- */
-
-const PlatformMedia = ({ post }) => {
-  const candidates = getMediaCandidates(post);
-  const [index, setIndex] = useState(0);
-  const videoRef = useRef(null);
-
-  if (!candidates.length) {
-    return <div className="media-fallback">No media</div>;
-  }
-
-  const current = candidates[index];
-
-  const tryNext = () => {
-    if (index < candidates.length - 1) {
-      setIndex(index + 1);
-    }
-  };
-
-  const goFullscreen = () => {
-    if (videoRef.current?.requestFullscreen) {
-      videoRef.current.requestFullscreen();
-    }
-  };
-
-  /* -------- VIDEO -------- */
-  if (post.media_type === "video") {
-    // YouTube (native fullscreen supported)
-    if (current.platform === "youtube") {
-      return (
-        <iframe
-          src={`https://www.youtube.com/embed/${current.external_post_id}`}
-          title="YouTube video"
-          allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        />
-      );
-    }
-
-    // Facebook / IG / LinkedIn / Twitter (best effort)
-    return (
-      <div className="video-wrapper">
-        <video
-          ref={videoRef}
-          src={current.media_url}
-          controls
-          muted
-          preload="metadata"
-          onError={tryNext}
-        />
-        <button
-          className="fullscreen-btn"
-          onClick={goFullscreen}
-          title="Fullscreen"
-        >
-          ⛶
-        </button>
-      </div>
-    );
-  }
-
-  /* -------- IMAGE -------- */
-  return (
-    <img
-      src={current.media_url}
-      alt="Post media"
-      onError={tryNext}
-    />
-  );
-};
-
-/* -------------------------------
-   MAIN PAGE
--------------------------------- */
 
 const AdsPage = () => {
   const [posts, setPosts] = useState([]);
@@ -114,8 +12,11 @@ const AdsPage = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  // Placeholder – backend retry will be added later
   const retryPlatform = (postId, platform) => {
-    alert(`Retry not implemented yet\nPost ID: ${postId}\nPlatform: ${platform.platform}`);
+    alert(
+      `Retry not implemented yet.\nPost ID: ${postId}\nPlatform: ${platform.platform}`
+    );
   };
 
   if (loading) {
@@ -128,38 +29,64 @@ const AdsPage = () => {
 
       {posts.map(post => (
         <div key={post.id} className="meta-card">
-
-          {/* LEFT: MEDIA */}
+          
+          {/* LEFT: Media */}
           <div className="meta-media">
-            <PlatformMedia post={post} />
+            {post.media_type === "video" ? (
+              <video
+                src={post.media_url}
+                controls
+                preload="metadata"
+                muted
+              />
+            ) : (
+              <img src={post.media_url} alt="Post media" />
+            )}
           </div>
 
-          {/* CENTER */}
+          {/* CENTER: Content */}
           <div className="meta-content">
             <h3 className="meta-title">
               {post.title || "Untitled post"}
             </h3>
 
-            <p className="meta-text">{post.content}</p>
+            <p className="meta-text">
+              {post.content}
+            </p>
 
             <div className="meta-meta">
-              <span>{post.media_type === "video" ? "🎬 Video" : "🖼️ Image"}</span>
+              <span>
+                {post.media_type === "video" ? "🎬 Video" : "🖼️ Image"}
+              </span>
               <span>
                 Published: {new Date(post.created_at).toLocaleDateString()}
               </span>
             </div>
 
+            {/* Platforms */}
             <div className="meta-platforms">
               {post.platforms.map(p => (
-                <div key={p.id} className={`platform-badge ${p.status}`}>
-                  <span>{p.platform.toUpperCase()}</span>
+                <div
+                  key={p.id}
+                  className={`platform-badge ${p.status}`}
+                >
+                  <span>
+                    {p.platform.toUpperCase()}
+                    {p.target_name && ` · ${p.target_name}`}
+                  </span>
 
+                  {/* SUCCESS → VIEW */}
                   {p.status === "success" && p.permalink && (
-                    <a href={p.permalink} target="_blank" rel="noreferrer">
+                    <a
+                      href={p.permalink}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
                       View
                     </a>
                   )}
 
+                  {/* FAILED → RETRY */}
                   {p.status === "error" && (
                     <button
                       className="retry-btn"
@@ -173,25 +100,39 @@ const AdsPage = () => {
             </div>
           </div>
 
-          {/* RIGHT */}
+          {/* RIGHT: Metrics + Actions */}
           <div className="meta-side">
             <div className="meta-metrics">
-              <div><strong>{post.reach || 0}</strong><span>Reach</span></div>
-              <div><strong>{post.views || 0}</strong><span>Views</span></div>
-              <div><strong>{post.viewers || 0}</strong><span>Viewers</span></div>
-              <div><strong>{post.follows || 0}</strong><span>Follows</span></div>
+              <div>
+                <strong>{post.reach || 0}</strong>
+                <span>Reach</span>
+              </div>
+              <div>
+                <strong>{post.views || 0}</strong>
+                <span>Views</span>
+              </div>
+              <div>
+                <strong>{post.viewers || 0}</strong>
+                <span>Viewers</span>
+              </div>
+              <div>
+                <strong>{post.follows || 0}</strong>
+                <span>Follows</span>
+              </div>
             </div>
 
             <div className="meta-actions">
               <button className="btn-danger">Delete</button>
 
+              {/* Boost only if Facebook success */}
               {post.platforms.some(
                 p => p.platform === "facebook" && p.status === "success"
               ) && (
                 <a
                   className="btn-primary"
                   href={`https://www.facebook.com/${
-                    post.platforms.find(p => p.platform === "facebook")?.external_post_id
+                    post.platforms.find(p => p.platform === "facebook")
+                      ?.external_post_id
                   }/boost`}
                   target="_blank"
                   rel="noreferrer"
